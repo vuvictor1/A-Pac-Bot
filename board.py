@@ -4,6 +4,9 @@
 # Description: This file contains the board for the game using a grid system.
 # License: GNU GPL v3 - See https://www.gnu.org/licenses/gpl-3.0.en.html
 
+# Victor's Note: Added comments to better understand the board layout
+# To-Do: Maybe we will need to modify this board to better suit our game
+
 # Board legend: Describe shapes of objects on the board
 # 0 = empty black rectangle, 1 = dot, 2 = big dot, 3 = vertical line
 # 4 = horizontal line, 5 = top right corner, 6 = top left corner, 7 = bottom left
