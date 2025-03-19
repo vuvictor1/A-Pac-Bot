@@ -1,6 +1,13 @@
-# 0 = empty black rectangle, 1 = dot, 2 = big dot, 3 = vertical line,
-# 4 = horizontal line, 5 = top right, 6 = top left, 7 = bot left, 8 = bot right
-# 9 = gate
+# Authors: Victor Vu, Christian Gomez, Alexander Hermenegildo & Jesus Fierro
+# Original Author: plemaster01 (https://github.com/plemaster01)
+# File: board.py
+# Description: This file contains the board for the game using a grid system.
+# License: GNU GPL v3 - See https://www.gnu.org/licenses/gpl-3.0.en.html
+
+# Board legend: Describe shapes of objects on the board
+# 0 = empty black rectangle, 1 = dot, 2 = big dot, 3 = vertical line
+# 4 = horizontal line, 5 = top right corner, 6 = top left corner, 7 = bottom left
+# 8 = bottom right, 9 = gate
 boards = [
 [6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5],
 [3, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 3],
