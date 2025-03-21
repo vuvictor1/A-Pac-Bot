@@ -5,7 +5,7 @@
 # License: GNU GPL v3 - See https://www.gnu.org/licenses/gpl-3.0.en.html
 
 # Victor's Note: File is very long and hard to read, some refactoring is needed.
-# From my testing, there are small bugs with the controls not being responsive sometimes.
+# From earlier testing, there were bugs with controls responding. Though hopefully I fixed it. 
 # To-Do: Swap player to AI, refactor, A* pathfinding, evaluate performance with scoreboard.
 import copy
 from board import boards
@@ -129,7 +129,7 @@ class Ghost:
         # R, L, U, D
         num1 = (HEIGHT - 50) // 32
         num2 = WIDTH // 30
-        num3 = 15
+        num3 = 12 # Victor Note: Original value 15, adjusted to make AI more responsive.
         self.turns = [False, False, False, False]
         if 0 < self.center_x // 30 < 29:
             if level[(self.center_y - num3) // num1][self.center_x // num2] == 9:
