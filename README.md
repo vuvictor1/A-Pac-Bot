@@ -34,6 +34,3 @@ python3 pacman.py
 - board
 - math
 - copy
-
-## Acknowledgments:
-Credit to the original [PythonPacman](https://github.com/plemaster01/PythonPacman) repository for inspiration and foundational code.
