@@ -32,22 +32,36 @@ ROWS, COLS = HEIGHT // TILE_SIZE, WIDTH // TILE_SIZE
 grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 pacman_pos = [1, 1]  # pacman position
 
-walls = [  # Define walls
-    [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6],
-    [6, 5], [6, 4], [6, 3], [6, 2], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6],
-    [9, 6], [10, 6], [11, 6], [12, 6], [12, 5], [12, 4], [12, 3], [12, 2],
-    [14, 2], [14, 3], [14, 4], [14, 5], [14, 6], [15, 6], [16, 6], [17, 6],
-    [18, 6], [18, 8], [17, 8], [16, 8], [15, 8], [14, 8], [13, 8], [12, 8],
-    [11, 8], [10, 8], [9, 8], [8, 8], [7, 8], [6, 8], [5, 8], [4, 8], [3, 8],
-    [2, 8], [2, 10], [3, 10], [4, 10], [5, 10], [6, 10], [7, 10], [8, 10],
-    [9, 10], [10, 10], [11, 10], [12, 10], [13, 10], [14, 10], [15, 10],
-    [16, 10], [17, 10], [18, 10], [18, 12], [17, 12], [16, 12], [15, 12],
-    [14, 12], [13, 12], [12, 12], [11, 12], [10, 12], [9, 12], [8, 12],
-    [7, 12], [6, 12], [5, 12], [4, 12], [3, 12], [2, 12], [2, 14], [3, 14],
-    [4, 14], [5, 14], [6, 14], [7, 14], [8, 14], [9, 14], [10, 14], [11, 14],
-    [12, 14], [13, 14], [14, 14], [15, 14], [16, 14], [17, 14], [18, 14],
-]
+walls = [
+    # Outer border
+    *[[0, col] for col in range(COLS)],
+    *[[ROWS - 1, col] for col in range(COLS)],
+    *[[row, 0] for row in range(ROWS)],
+    *[[row, COLS - 1] for row in range(ROWS)],
 
+    # Top section
+    [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10],
+    [3, 2], [4, 2], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10],
+    [3, 10], [4, 10],
+
+    # Bottom section
+    [ROWS - 3, 2], [ROWS - 3, 3], [ROWS - 3, 4], [ROWS - 3, 5], [ROWS - 3, 6], [ROWS - 3, 7], [ROWS - 3, 8], [ROWS - 3, 9], [ROWS - 3, 10],
+    [ROWS - 4, 2], [ROWS - 5, 2], [ROWS - 6, 2], [ROWS - 6, 3], [ROWS - 6, 4], [ROWS - 6, 5], [ROWS - 6, 6], [ROWS - 6, 7], [ROWS - 6, 8], [ROWS - 6, 9], [ROWS - 6, 10],
+    [ROWS - 4, 10], [ROWS - 5, 10],
+
+    # Left section
+    [6, 2], [7, 2], [8, 2], [9, 2], [10, 2], [11, 2], [12, 2],
+    [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9], [6, 10],
+
+    # Right section
+    [6, COLS - 3], [7, COLS - 3], [8, COLS - 3], [9, COLS - 3], [10, COLS - 3], [11, COLS - 3], [12, COLS - 3],
+    [6, COLS - 4], [6, COLS - 5], [6, COLS - 6], [6, COLS - 7], [6, COLS - 8], [6, COLS - 9], [6, COLS - 10],
+
+    # Center box (ghost spawn area with exit)
+    [ROWS // 2 - 1, COLS // 2 - 2], [ROWS // 2 - 1, COLS // 2 - 1], [ROWS // 2 - 1, COLS // 2],
+    [ROWS // 2, COLS // 2 - 2], [ROWS // 2, COLS // 2], [ROWS // 2 + 1, COLS // 2 - 2], [ROWS // 2 + 1, COLS // 2 - 1], [ROWS // 2 + 1, COLS // 2],
+    [ROWS // 2 + 2, COLS // 2 - 1],  # Exit for ghosts
+]
 
 def generate_powerups(num_powerups):  # Generate power-ups in valid positions
     powerups = []
@@ -61,7 +75,7 @@ def generate_powerups(num_powerups):  # Generate power-ups in valid positions
 
 
 powerups = generate_powerups(3)  # generate 3 power-ups
-enemies = [[15, 15], [8, 8]]  # enemy positions
+enemies = [[15, 15], [8, 8], [10, 10], [5, 5]] # four ghosts/enemy positions
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # directions: right, down, left, up
 font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
 
@@ -162,24 +176,24 @@ def draw_enemies():  # Draw enemies
         )
 
 
-def move_pacman_randomly():  # Move Pacman randomly
-    possible_moves = [
-        (pacman_pos[0] + d[0], pacman_pos[1] + d[1])
-        for d in DIRECTIONS
-        if 0 <= pacman_pos[0] + d[0] < ROWS
-        and 0 <= pacman_pos[1] + d[1] < COLS
-        and [pacman_pos[0] + d[0], pacman_pos[1] + d[1]] not in walls
-    ]
-    if possible_moves:
-        new_pos = random.choice(possible_moves)
-        pacman_pos[0], pacman_pos[1] = new_pos[0], new_pos[1]
+def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
+    path = a_star_search(pacman_pos, target)
+    if path:
+        pacman_pos[0], pacman_pos[1] = path[0]  # Move to the next position in the path
 
 
-def move_enemies_with_a_star():  # Move enemies using A* to chase Pacman
+def move_enemies_randomly():  # Move enemies randomly
     for i, enemy in enumerate(enemies):
-        path = a_star_search(enemy, pacman_pos)
-        if path:
-            enemies[i] = path[0]  # move to the next position in the path
+        possible_moves = [
+            (enemy[0] + d[0], enemy[1] + d[1])
+            for d in DIRECTIONS
+            if 0 <= enemy[0] + d[0] < ROWS
+            and 0 <= enemy[1] + d[1] < COLS
+            and [enemy[0] + d[0], enemy[1] + d[1]] not in walls
+        ]
+        if possible_moves:
+            new_pos = random.choice(possible_moves)
+            enemies[i] = [new_pos[0], new_pos[1]]
 
 
 def show_game_over():  # Show game over screen
@@ -222,17 +236,26 @@ while running:
     draw_powerups()
     draw_enemies()
 
-    move_pacman_randomly()
-    move_enemies_with_a_star()
+    # Move Pacman toward the first power-up (or any target)
+    if powerups:
+        move_pacman_with_a_star(powerups[0])  # Pacman targets the first power-up
 
-    if pacman_pos in enemies:  # Check for collision with enemies
+    move_enemies_randomly()  # Ghosts move randomly
+
+    # Check for collision with enemies
+    if pacman_pos in enemies:
         show_game_over()
 
-    for event in pygame.event.get():  # Check for collision with power-ups
+    # Check for collision with power-ups
+    for powerup in powerups[:]:
+        if pacman_pos == powerup:
+            powerups.remove(powerup)  # Remove the power-up if Pacman collects it
+
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
     pygame.display.flip()
-    clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
+    clock.tick(5)  # Set the frame rate to 5 FPS to slow down the game
 
 pygame.quit()
