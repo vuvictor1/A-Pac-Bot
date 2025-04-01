@@ -11,7 +11,6 @@ pygame.font.init()  # initializes the font module
 # Screen dimensions
 WIDTH, HEIGHT = 600, 400
 TILE_SIZE = 20
-
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -21,43 +20,137 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 DARK_GRAY = (50, 50, 50)
 
-screen = pygame.display.set_mode(
+screen = pygame.display.set_mode(  # creates a window of the specified size
     (WIDTH, HEIGHT)
-)  # creates a window of the specified size
+)
+
 pygame.display.set_caption("Pac-Bot A* Search")  # sets the window title
 clock = pygame.time.Clock()  # clock object to control the frame rate
 
 # Create a grid
 ROWS, COLS = HEIGHT // TILE_SIZE, WIDTH // TILE_SIZE
 grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
-
-# Agents and power-up positions
 pacman_pos = [1, 1]  # pacman position
 
-# Define walls first
-walls = [
-    # Inner maze walls (no dead ends)
-    [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [6, 5], [6, 4], [6, 3], [6, 2],
-    [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [9, 6], [10, 6], [11, 6], [12, 6], [12, 5], [12, 4], [12, 3], [12, 2],
-    [14, 2], [14, 3], [14, 4], [14, 5], [14, 6], [15, 6], [16, 6], [17, 6], [18, 6],
-    [18, 8], [17, 8], [16, 8], [15, 8], [14, 8], [13, 8], [12, 8], [11, 8], [10, 8], [9, 8], [8, 8], [7, 8], [6, 8], [5, 8], [4, 8], [3, 8], [2, 8],
-    [2, 10], [3, 10], [4, 10], [5, 10], [6, 10], [7, 10], [8, 10], [9, 10], [10, 10], [11, 10], [12, 10], [13, 10], [14, 10], [15, 10], [16, 10], [17, 10], [18, 10],
-    [18, 12], [17, 12], [16, 12], [15, 12], [14, 12], [13, 12], [12, 12], [11, 12], [10, 12], [9, 12], [8, 12], [7, 12], [6, 12], [5, 12], [4, 12], [3, 12], [2, 12],
-    [2, 14], [3, 14], [4, 14], [5, 14], [6, 14], [7, 14], [8, 14], [9, 14], [10, 14], [11, 14], [12, 14], [13, 14], [14, 14], [15, 14], [16, 14], [17, 14], [18, 14],
+walls = [  # Define walls
+    [2, 2],
+    [2, 3],
+    [2, 4],
+    [2, 5],
+    [2, 6],
+    [3, 6],
+    [4, 6],
+    [5, 6],
+    [6, 6],
+    [6, 5],
+    [6, 4],
+    [6, 3],
+    [6, 2],
+    [8, 2],
+    [8, 3],
+    [8, 4],
+    [8, 5],
+    [8, 6],
+    [9, 6],
+    [10, 6],
+    [11, 6],
+    [12, 6],
+    [12, 5],
+    [12, 4],
+    [12, 3],
+    [12, 2],
+    [14, 2],
+    [14, 3],
+    [14, 4],
+    [14, 5],
+    [14, 6],
+    [15, 6],
+    [16, 6],
+    [17, 6],
+    [18, 6],
+    [18, 8],
+    [17, 8],
+    [16, 8],
+    [15, 8],
+    [14, 8],
+    [13, 8],
+    [12, 8],
+    [11, 8],
+    [10, 8],
+    [9, 8],
+    [8, 8],
+    [7, 8],
+    [6, 8],
+    [5, 8],
+    [4, 8],
+    [3, 8],
+    [2, 8],
+    [2, 10],
+    [3, 10],
+    [4, 10],
+    [5, 10],
+    [6, 10],
+    [7, 10],
+    [8, 10],
+    [9, 10],
+    [10, 10],
+    [11, 10],
+    [12, 10],
+    [13, 10],
+    [14, 10],
+    [15, 10],
+    [16, 10],
+    [17, 10],
+    [18, 10],
+    [18, 12],
+    [17, 12],
+    [16, 12],
+    [15, 12],
+    [14, 12],
+    [13, 12],
+    [12, 12],
+    [11, 12],
+    [10, 12],
+    [9, 12],
+    [8, 12],
+    [7, 12],
+    [6, 12],
+    [5, 12],
+    [4, 12],
+    [3, 12],
+    [2, 12],
+    [2, 14],
+    [3, 14],
+    [4, 14],
+    [5, 14],
+    [6, 14],
+    [7, 14],
+    [8, 14],
+    [9, 14],
+    [10, 14],
+    [11, 14],
+    [12, 14],
+    [13, 14],
+    [14, 14],
+    [15, 14],
+    [16, 14],
+    [17, 14],
+    [18, 14],
 ]
 
-# Generate power-ups in valid positions
-def generate_powerups(num_powerups):
+
+def generate_powerups(num_powerups):  # Generate power-ups in valid positions
     powerups = []
     while len(powerups) < num_powerups:
         pos = [random.randint(0, ROWS - 1), random.randint(0, COLS - 1)]
-        if pos not in walls and pos not in powerups:  # ensure power-up is not in a wall or duplicate
+        if (
+            pos not in walls and pos not in powerups
+        ):  # ensure power-up is not in a wall or duplicate
             powerups.append(pos)
     return powerups
 
-# Generate power-ups after defining walls
-powerups = generate_powerups(3)  # generate 3 power-ups
 
+powerups = generate_powerups(3)  # generate 3 power-ups
 enemies = [[15, 15], [8, 8]]  # enemy positions
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # directions: right, down, left, up
 font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
@@ -93,7 +186,7 @@ def a_star_search(
                 current[1] + direction[1],
             )  # use tuple
 
-            if (
+            if (  # Check if neighbor is within bounds and not a wall
                 0 <= neighbor[0] < ROWS
                 and 0 <= neighbor[1] < COLS
                 and list(neighbor) not in walls
@@ -114,9 +207,9 @@ def draw_grid():  # Draw the grid with walls
         for col in range(COLS):
             rect = pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE)
             if [row, col] in walls:
-                pygame.draw.rect(
+                pygame.draw.rect(  # draw walls as dark gray rectangles
                     screen, DARK_GRAY, rect
-                )  # draw walls as dark gray rectangles
+                )
             else:
                 pygame.draw.rect(screen, BLUE, rect, 1)  # draw grid lines in blue
 
@@ -196,7 +289,7 @@ def show_game_over():  # Show game over screen
     subtext_rect = subtext.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20))
     screen.blit(subtext, subtext_rect)
 
-    pygame.display.flip()
+    pygame.display.flip()  # update the display
 
     # Wait for the user to press ESC or close the game
     waiting = True
@@ -222,11 +315,10 @@ while running:
     move_pacman_randomly()
     move_enemies_with_a_star()
 
-    # Check for collision with enemies
-    if pacman_pos in enemies:
+    if pacman_pos in enemies:  # Check for collision with enemies
         show_game_over()
 
-    for event in pygame.event.get():
+    for event in pygame.event.get():  # Check for collision with power-ups
         if event.type == pygame.QUIT:
             running = False
 
