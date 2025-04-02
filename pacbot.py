@@ -33,35 +33,29 @@ grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 pacman_pos = [1, 1]  # pacman position
 
 walls = [
-    # Outer border
-    *[[0, col] for col in range(COLS)],
-    *[[ROWS - 1, col] for col in range(COLS)],
-    *[[row, 0] for row in range(ROWS)],
-    *[[row, COLS - 1] for row in range(ROWS)],
-
-    # Top section
-    [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10],
+    # Top section (leave a gap at [2, 5])
+    [2, 2], [2, 3], [2, 4], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10],
     [3, 2], [4, 2], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10],
     [3, 10], [4, 10],
 
-    # Bottom section
-    [ROWS - 3, 2], [ROWS - 3, 3], [ROWS - 3, 4], [ROWS - 3, 5], [ROWS - 3, 6], [ROWS - 3, 7], [ROWS - 3, 8], [ROWS - 3, 9], [ROWS - 3, 10],
+    # Bottom section (leave a gap at [ROWS - 3, 6])
+    [ROWS - 3, 2], [ROWS - 3, 3], [ROWS - 3, 4], [ROWS - 3, 5], [ROWS - 3, 7], [ROWS - 3, 8], [ROWS - 3, 9], [ROWS - 3, 10],
     [ROWS - 4, 2], [ROWS - 5, 2], [ROWS - 6, 2], [ROWS - 6, 3], [ROWS - 6, 4], [ROWS - 6, 5], [ROWS - 6, 6], [ROWS - 6, 7], [ROWS - 6, 8], [ROWS - 6, 9], [ROWS - 6, 10],
     [ROWS - 4, 10], [ROWS - 5, 10],
 
-    # Left section
-    [6, 2], [7, 2], [8, 2], [9, 2], [10, 2], [11, 2], [12, 2],
+    # Left section (leave a gap at [9, 2])
+    [6, 2], [7, 2], [8, 2], [10, 2], [11, 2], [12, 2],
     [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9], [6, 10],
 
-    # Right section
-    [6, COLS - 3], [7, COLS - 3], [8, COLS - 3], [9, COLS - 3], [10, COLS - 3], [11, COLS - 3], [12, COLS - 3],
+    # Right section (leave a gap at [9, COLS - 3])
+    [6, COLS - 3], [7, COLS - 3], [8, COLS - 3], [10, COLS - 3], [11, COLS - 3], [12, COLS - 3],
     [6, COLS - 4], [6, COLS - 5], [6, COLS - 6], [6, COLS - 7], [6, COLS - 8], [6, COLS - 9], [6, COLS - 10],
 
-    # Center box (ghost spawn area with exit)
+    # Center box (leave gaps at [ROWS // 2 + 2, COLS // 2] and [ROWS // 2, COLS // 2 - 2])
     [ROWS // 2 - 1, COLS // 2 - 2], [ROWS // 2 - 1, COLS // 2 - 1], [ROWS // 2 - 1, COLS // 2],
-    [ROWS // 2, COLS // 2 - 2], [ROWS // 2, COLS // 2], [ROWS // 2 + 1, COLS // 2 - 2], [ROWS // 2 + 1, COLS // 2 - 1], [ROWS // 2 + 1, COLS // 2],
-    [ROWS // 2 + 2, COLS // 2 - 1],  # Exit for ghosts
-]
+    [ROWS // 2, COLS // 2],  
+    [ROWS // 2 + 1, COLS // 2 - 2], [ROWS // 2 + 1, COLS // 2 - 1],
+    ]
 
 def generate_powerups(num_powerups):  # Generate power-ups in valid positions
     powerups = []
@@ -75,7 +69,13 @@ def generate_powerups(num_powerups):  # Generate power-ups in valid positions
 
 
 powerups = generate_powerups(3)  # generate 3 power-ups
-enemies = [[15, 15], [8, 8], [10, 10], [5, 5]] # four ghosts/enemy positions
+# Update the enemies list to spawn in the center box
+enemies = [
+    [ROWS // 2 - 1, COLS // 2 - 1],  # top-left of the center box
+    [ROWS // 2 - 1, COLS // 2],      # top-right of the center box
+    [ROWS // 2, COLS // 2 - 1],      # bottom-left of the center box
+    [ROWS // 2, COLS // 2]           # bottom-right of the center box
+]
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # directions: right, down, left, up
 font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
 
