@@ -31,26 +31,22 @@ clock = pygame.time.Clock()  # clock object to control the frame rate
 ROWS, COLS = HEIGHT // TILE_SIZE, WIDTH // TILE_SIZE
 grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 pacman_pos = [1, 1]  # pacman position
+walls = [] # list to store wall positions
 
-walls = []
-
-# Border walls
-for col in range(COLS):
+for col in range(COLS): # Border walls
     walls.append([0, col])
     walls.append([ROWS - 1, col])
 for row in range(ROWS):
     walls.append([row, 0])
     walls.append([row, COLS - 1])
 
-# Vertical corridors
-for row in range(2, ROWS - 2):
+for row in range(2, ROWS - 2): # Vertical corridors
     if row % 4 != 0:
         walls.append([row, COLS // 4])
         walls.append([row, COLS // 2])
         walls.append([row, 3 * COLS // 4])
 
-# Horizontal lines across the grid (except through corridors)
-for col in range(2, COLS - 2):
+for col in range(2, COLS - 2): # Horizontal corridors
     if col % 5 != 0:
         walls.append([ROWS // 4, col])
         walls.append([ROWS // 2, col])
@@ -65,29 +61,26 @@ ghost_box = [
     [center_row, center_col + 1], [center_row, center_col - 1]
 ]
 walls += ghost_box
-# Leave (center_row, center_col) open as the ghost exit
 
-# Add side barriers to restrict shortcutting
-for row in range(5, ROWS - 5):
+for row in range(5, ROWS - 5): # Add barriers to the left and right sides
     if row % 6 == 0:
         walls.append([row, 2])
         walls.append([row, COLS - 3])
 
 
-def generate_powerups(num_powerups):  # Generate power-ups in valid positions
-    powerups = []
-    while len(powerups) < num_powerups:
+def generate_food(num_food):  # Generate food in valid positions
+    food = []
+    while len(food) < num_food:
         pos = [random.randint(0, ROWS - 1), random.randint(0, COLS - 1)]
         if (
-            pos not in walls and pos not in powerups
+            pos not in walls and pos not in food
         ):  # ensure power-up is not in a wall or duplicate
-            powerups.append(pos)
-    return powerups
+            food.append(pos)
+    return food
 
 
-powerups = generate_powerups(3)  # generate 3 power-ups
-# Update the enemies list to spawn in the center box
-enemies = [
+food = generate_food(3)  # generate 3 food
+enemies = [ # Update the enemies list to spawn in the center box
     [center_row - 2, center_col],
     [center_row + 2, center_col],
     [center_row, center_col - 2],
@@ -168,8 +161,8 @@ def draw_pacman():  # Draw Pacman
     )
 
 
-def draw_powerups():  # Draw power-ups
-    for powerup in powerups:
+def draw_food():  # Draw food
+    for powerup in food:
         pygame.draw.circle(
             screen,
             GREEN,
@@ -197,7 +190,7 @@ def draw_enemies():  # Draw enemies
 def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
     path = a_star_search(pacman_pos, target)
     if path:
-        pacman_pos[0], pacman_pos[1] = path[0]  # Move to the next position in the path
+        pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
 
 
 def move_enemies_randomly():  # Move enemies randomly
@@ -245,35 +238,41 @@ def show_game_over():  # Show game over screen
                 exit()
 
 
+start_time = pygame.time.get_ticks() # intialize the start time
+timer_font = pygame.font.SysFont("Arial", 20) # smaller font for the timer
+
+def draw_timer():  # Function to draw the timer on the screen
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # convert to seconds
+    timer_text = timer_font.render(f"Time: {elapsed_time}s", True, WHITE)
+    screen.blit(timer_text, (20, HEIGHT - 21))  # display timer at the bottom left
+
 # Main game loop
 running = True
 while running:
     screen.fill(BLACK)
     draw_grid()
     draw_pacman()
-    draw_powerups()
+    draw_food()
     draw_enemies()
+    draw_timer()  # draw the timer
 
-    # Move Pacman toward the first power-up (or any target)
-    if powerups:
-        move_pacman_with_a_star(powerups[0])  # Pacman targets the first power-up
+    if food:  # Move Pacman toward the first power-up (or any target)
+        move_pacman_with_a_star(food[0])  # pacman targets the first power-up
 
-    move_enemies_randomly()  # Ghosts move randomly
+    move_enemies_randomly()  # ghosts move randomly
 
-    # Check for collision with enemies
-    if pacman_pos in enemies:
+    if pacman_pos in enemies:  # Check for collision with enemies
         show_game_over()
 
-    # Check for collision with power-ups
-    for powerup in powerups[:]:
+    for powerup in food[:]:  # Check for collision with food
         if pacman_pos == powerup:
-            powerups.remove(powerup)  # Remove the power-up if Pacman collects it
+            food.remove(powerup)  # remove the power-up if Pacman collects it
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
     pygame.display.flip()
-    clock.tick(5)  # Set the frame rate to 5 FPS to slow down the game
+    clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
 
 pygame.quit()
