@@ -32,30 +32,47 @@ ROWS, COLS = HEIGHT // TILE_SIZE, WIDTH // TILE_SIZE
 grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 pacman_pos = [1, 1]  # pacman position
 
-walls = [
-    # Top section (leave a gap at [2, 5])
-    [2, 2], [2, 3], [2, 4], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10],
-    [3, 2], [4, 2], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10],
-    [3, 10], [4, 10],
+walls = []
 
-    # Bottom section (leave a gap at [ROWS - 3, 6])
-    [ROWS - 3, 2], [ROWS - 3, 3], [ROWS - 3, 4], [ROWS - 3, 5], [ROWS - 3, 7], [ROWS - 3, 8], [ROWS - 3, 9], [ROWS - 3, 10],
-    [ROWS - 4, 2], [ROWS - 5, 2], [ROWS - 6, 2], [ROWS - 6, 3], [ROWS - 6, 4], [ROWS - 6, 5], [ROWS - 6, 6], [ROWS - 6, 7], [ROWS - 6, 8], [ROWS - 6, 9], [ROWS - 6, 10],
-    [ROWS - 4, 10], [ROWS - 5, 10],
+# Border walls
+for col in range(COLS):
+    walls.append([0, col])
+    walls.append([ROWS - 1, col])
+for row in range(ROWS):
+    walls.append([row, 0])
+    walls.append([row, COLS - 1])
 
-    # Left section (leave a gap at [9, 2])
-    [6, 2], [7, 2], [8, 2], [10, 2], [11, 2], [12, 2],
-    [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9], [6, 10],
+# Vertical corridors
+for row in range(2, ROWS - 2):
+    if row % 4 != 0:
+        walls.append([row, COLS // 4])
+        walls.append([row, COLS // 2])
+        walls.append([row, 3 * COLS // 4])
 
-    # Right section (leave a gap at [9, COLS - 3])
-    [6, COLS - 3], [7, COLS - 3], [8, COLS - 3], [10, COLS - 3], [11, COLS - 3], [12, COLS - 3],
-    [6, COLS - 4], [6, COLS - 5], [6, COLS - 6], [6, COLS - 7], [6, COLS - 8], [6, COLS - 9], [6, COLS - 10],
+# Horizontal lines across the grid (except through corridors)
+for col in range(2, COLS - 2):
+    if col % 5 != 0:
+        walls.append([ROWS // 4, col])
+        walls.append([ROWS // 2, col])
+        walls.append([3 * ROWS // 4, col])
 
-    # Center box (leave gaps at [ROWS // 2 + 2, COLS // 2] and [ROWS // 2, COLS // 2 - 2])
-    [ROWS // 2 - 1, COLS // 2 - 2], [ROWS // 2 - 1, COLS // 2 - 1], [ROWS // 2 - 1, COLS // 2],
-    [ROWS // 2, COLS // 2],  
-    [ROWS // 2 + 1, COLS // 2 - 2], [ROWS // 2 + 1, COLS // 2 - 1],
-    ]
+# Central ghost box with exits
+center_row = ROWS // 2
+center_col = COLS // 2
+ghost_box = [
+    [center_row - 1, center_col - 1], [center_row - 1, center_col],
+    [center_row + 1, center_col - 1], [center_row + 1, center_col],
+    [center_row, center_col + 1], [center_row, center_col - 1]
+]
+walls += ghost_box
+# Leave (center_row, center_col) open as the ghost exit
+
+# Add side barriers to restrict shortcutting
+for row in range(5, ROWS - 5):
+    if row % 6 == 0:
+        walls.append([row, 2])
+        walls.append([row, COLS - 3])
+
 
 def generate_powerups(num_powerups):  # Generate power-ups in valid positions
     powerups = []
@@ -71,11 +88,12 @@ def generate_powerups(num_powerups):  # Generate power-ups in valid positions
 powerups = generate_powerups(3)  # generate 3 power-ups
 # Update the enemies list to spawn in the center box
 enemies = [
-    [ROWS // 2 - 1, COLS // 2 - 1],  # top-left of the center box
-    [ROWS // 2 - 1, COLS // 2],      # top-right of the center box
-    [ROWS // 2, COLS // 2 - 1],      # bottom-left of the center box
-    [ROWS // 2, COLS // 2]           # bottom-right of the center box
+    [center_row - 2, center_col],
+    [center_row + 2, center_col],
+    [center_row, center_col - 2],
+    [center_row, center_col + 2],
 ]
+
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # directions: right, down, left, up
 font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
 
