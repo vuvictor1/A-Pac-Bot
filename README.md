@@ -8,8 +8,8 @@
 ## Features:
 - **A Star Search Algorithm**: Efficient pathfinding for Pac-Man and ghost agents.
 - **Multi-Agent System**: Ghosts coordinate to chase Pac-Man, combining competitive and cooperative AI.
-- **Procedural Maze Generation**: Create unique environments for testing AI performance.
-- **Performance Metrics**: Evaluate path efficiency, agent behavior, and adaptability.
+- **Mutliple Levels**: Create unique environments for testing AI performance.
+- **Performance Metrics**: Evaluate path efficiency, based on elapsed time and food consumed.
 - **Visualization**: Real-time visualization of AI controlled movements and interactions using Pygame.
 
 ## Implementation:
@@ -31,6 +31,5 @@ python3 pacman.py
 
 ## Requirements:
 - pygame-ce
-- board
-- math
-- copy
+- heapq
+- random
