@@ -250,7 +250,7 @@ food_eaten = 0  # initialize the counter for food pellets eaten
 
 def draw_food_eaten():  # Function to display the number of food pellets eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
-    screen.blit(food_text, (110, HEIGHT - 21))  # display right of timer
+    screen.blit(food_text, (115, HEIGHT - 21))  # display right of timer
 
 # Main game loop
 running = True
@@ -275,6 +275,9 @@ while running:
         if pacman_pos == powerup:
             food.remove(powerup)  # remove the power-up if Pacman collects it
             food_eaten += 1  # increment the food eaten counter
+
+    if not food:  # Check if all food pellets are eaten
+        food = generate_food(3)  # Respawn 3 new food pellets
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
