@@ -6,21 +6,22 @@
 </div>
 
 ## Features:
-- **A Star Search Algorithm**: Efficient pathfinding for Pac-Man and ghost agents.
+- **Search Algorithms**: Efficient pathfinding for Pac-Man and ghost agents.
 - **Multi-Agent System**: Ghosts coordinate to chase Pac-Man, combining competitive and cooperative AI.
 - **Mutliple Levels**: Create unique environments for testing AI performance.
+- **Food System:** Randomly position respawnable food pellets in valid spaces. 
 - **Performance Metrics**: Evaluate path efficiency, based on elapsed time and food consumed.
 - **Visualization**: Real-time visualization of AI controlled movements and interactions using Pygame.
 
 ## Implementation:
 - **Programming Language**: Python 3
 - **Game Development**: Pygame library
-- **Algorithm**: A* Search for pathfinding and decision-making
+- **Algorithm**: A*, BFS, & DFS Search for pathfinding and decision-making
 - **Environment**: Grid-based maze with dynamic obstacles and partially observable states
 
 ## Team:
 - **Victor Vu**: Team Leader; A* implementation, performance evaluation, game testing, documentation.
-- **Cristian Gomez**: AI Engineer; game design, maze generation, documentation.
+- **Cristian Gomez**: AI Engineer; game design, BFS/DFS implementation, maze generation, documentation.
 - **Alexander Hermenegildo**: AI Engineer; multi-agent implementation, competitive AI, documentation.
 - **Jesus Fierro**: AI Engineer; cooperative AI, debugging, food system design, documentation.
 
