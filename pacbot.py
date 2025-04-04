@@ -239,12 +239,18 @@ def show_game_over():  # Show game over screen
 
 
 start_time = pygame.time.get_ticks() # intialize the start time
-timer_font = pygame.font.SysFont("Arial", 20) # smaller font for the timer
+metrics_font = pygame.font.SysFont("Arial", 20) # smaller font for the timer
 
 def draw_timer():  # Function to draw the timer on the screen
     elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # convert to seconds
-    timer_text = timer_font.render(f"Time: {elapsed_time}s", True, WHITE)
+    timer_text = metrics_font.render(f"Time: {elapsed_time}s", True, WHITE)
     screen.blit(timer_text, (20, HEIGHT - 21))  # display timer at the bottom left
+
+food_eaten = 0  # initialize the counter for food pellets eaten
+
+def draw_food_eaten():  # Function to display the number of food pellets eaten
+    food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
+    screen.blit(food_text, (110, HEIGHT - 21))  # display right of timer
 
 # Main game loop
 running = True
@@ -255,6 +261,7 @@ while running:
     draw_food()
     draw_enemies()
     draw_timer()  # draw the timer
+    draw_food_eaten()  # draw the food eaten counter
 
     if food:  # Move Pacman toward the first power-up (or any target)
         move_pacman_with_a_star(food[0])  # pacman targets the first power-up
@@ -267,6 +274,7 @@ while running:
     for powerup in food[:]:  # Check for collision with food
         if pacman_pos == powerup:
             food.remove(powerup)  # remove the power-up if Pacman collects it
+            food_eaten += 1  # increment the food eaten counter
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
