@@ -10,8 +10,8 @@ pygame.font.init()  # initializes the font module
 
 #Menu
 MENU = True
-selected_level = 0  # 0 = Beginner, 1 = Intermediate, 2 = Expert
-levels = ["Beginner", "Intermediate", "Difficult"]
+selected_level = 0  # 0 = Beginner, 1 = Intermediate, 2 = Advanced
+levels = ["Beginner", "Intermediate", "Advanced"]
 
 # Screen dimensions
 WIDTH, HEIGHT = 600, 400
@@ -65,7 +65,7 @@ ghost_box = [
     [center_row + 1, center_col - 1], [center_row + 1, center_col],
     [center_row, center_col + 1], [center_row, center_col - 1]
 ]
-walls += ghost_box
+walls += ghost_box # add ghost box to walls
 
 for row in range(5, ROWS - 5): # Add barriers to the left and right sides
     if row % 6 == 0:
@@ -256,10 +256,13 @@ def show_game_over():  # Show game over screen
 start_time = pygame.time.get_ticks() # intialize the start time
 metrics_font = pygame.font.SysFont("Arial", 20) # smaller font for the timer
 
-def draw_timer():  # Function to draw the timer on the screen
+def draw_timer():  # Function to draw the timer and time remaining on the screen
     elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # convert to seconds
+    remaining_time = max(0, game_duration - elapsed_time)  # calculate remaining time
     timer_text = metrics_font.render(f"Time: {elapsed_time}s", True, WHITE)
+    remaining_text = metrics_font.render(f"Time Remaining: {remaining_time}s", True, WHITE)
     screen.blit(timer_text, (20, HEIGHT - 21))  # display timer at the bottom left
+    screen.blit(remaining_text, (250, HEIGHT - 21))  # display remaining time to the right of food eaten
 
 food_eaten = 0  # initialize the counter for food pellets eaten
 
@@ -267,36 +270,36 @@ def draw_food_eaten():  # Function to display the number of food pellets eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
     screen.blit(food_text, (115, HEIGHT - 21))  # display right of timer
 
-def draw_menu():
+def draw_menu(): # Draw the menu for selecting levels
     screen.fill(BLACK)
     title_font = pygame.font.SysFont("Arial", 48)
     option_font = pygame.font.SysFont("Arial", 32)
 
-    title = title_font.render("PAC-BOT", True, YELLOW)
-    screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
+    title = title_font.render("PAC-BOT", True, YELLOW) 
+    screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 50)) 
 
-    for i, level_name in enumerate(levels):
+    for i, level_name in enumerate(levels): # Display level names
         color = GREEN if i == selected_level else WHITE
         text = option_font.render(f"Level {i + 1}: {level_name}", True, color)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 150 + i * 50))
 
-    prompt = metrics_font.render("Use ↑ ↓ to choose, Enter to start", True, WHITE)
-    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 40))
+    prompt = metrics_font.render("Use Up/Down Arrows to choose, Enter to start", True, WHITE)
+    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 40)) 
 
-    pygame.display.flip()
+    pygame.display.flip() # update the display
 
 
 # Main game loop
 running = True
 game_duration = 60
 
-while MENU:
+while MENU: # Menu loop
     draw_menu()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    for event in pygame.event.get(): # Check for events
+        if event.type == pygame.QUIT: # Close the game
             pygame.quit()
             exit()
-        if event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN: # Check for key presses
             if event.key == pygame.K_UP:
                 selected_level = (selected_level - 1) % len(levels)
             if event.key == pygame.K_DOWN:
@@ -305,7 +308,7 @@ while MENU:
                 MENU = False  # exit menu and start the game
 
 
-while running:
+while running: # Main game loop
     screen.fill(BLACK)
     draw_grid()
     draw_pacman()
@@ -334,10 +337,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    pygame.display.flip()
+    pygame.display.flip() # update the display
     clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
-    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
-    if elapsed_time >= game_duration:
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000 
+    if elapsed_time >= game_duration: # Check if the game duration is over 60s
         pygame.quit()
         exit()
 
