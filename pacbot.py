@@ -8,6 +8,11 @@ import random
 pygame.init()  # initializes all imported pygame modules
 pygame.font.init()  # initializes the font module
 
+#Menu
+MENU = True
+selected_level = 0  # 0 = Beginner, 1 = Intermediate, 2 = Expert
+levels = ["Beginner", "Intermediate", "Difficult"]
+
 # Screen dimensions
 WIDTH, HEIGHT = 600, 400
 TILE_SIZE = 20
@@ -80,6 +85,16 @@ def generate_food(num_food):  # Generate food in valid positions
 
 
 food = generate_food(3)  # generate 3 food
+if selected_level == 0:  # Beginner
+    ghost_speed = 1
+    food = generate_food(2)
+elif selected_level == 1:  # Intermediate
+    ghost_speed = 2
+    food = generate_food(3)
+else:  # Expert
+    ghost_speed = 3
+    food = generate_food(4)
+
 enemies = [ # Update the enemies list to spawn in the center box
     [center_row - 2, center_col],
     [center_row + 2, center_col],
@@ -252,8 +267,44 @@ def draw_food_eaten():  # Function to display the number of food pellets eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
     screen.blit(food_text, (115, HEIGHT - 21))  # display right of timer
 
+def draw_menu():
+    screen.fill(BLACK)
+    title_font = pygame.font.SysFont("Arial", 48)
+    option_font = pygame.font.SysFont("Arial", 32)
+
+    title = title_font.render("PAC-BOT", True, YELLOW)
+    screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
+
+    for i, level_name in enumerate(levels):
+        color = GREEN if i == selected_level else WHITE
+        text = option_font.render(f"Level {i + 1}: {level_name}", True, color)
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 150 + i * 50))
+
+    prompt = metrics_font.render("Use ↑ ↓ to choose, Enter to start", True, WHITE)
+    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 40))
+
+    pygame.display.flip()
+
+
 # Main game loop
 running = True
+game_duration = 60
+
+while MENU:
+    draw_menu()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                selected_level = (selected_level - 1) % len(levels)
+            if event.key == pygame.K_DOWN:
+                selected_level = (selected_level + 1) % len(levels)
+            if event.key == pygame.K_RETURN:
+                MENU = False  # exit menu and start the game
+
+
 while running:
     screen.fill(BLACK)
     draw_grid()
@@ -285,5 +336,9 @@ while running:
 
     pygame.display.flip()
     clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
+    if elapsed_time >= game_duration:
+        pygame.quit()
+        exit()
 
 pygame.quit()
