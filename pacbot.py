@@ -84,7 +84,6 @@ def generate_food(num_food):  # Generate food in valid positions
     return food
 
 
-food = generate_food(3)  # generate 3 food
 if selected_level == 0:  # Beginner
     ghost_speed = 1
     food = generate_food(2)
