@@ -4,6 +4,7 @@
 import pygame
 import heapq
 import random
+from collections import deque
 
 pygame.init()  # initializes all imported pygame modules
 pygame.font.init()  # initializes the font module
@@ -140,6 +141,37 @@ def a_star_search(
 
     return []
 
+######################
+def bfs(start, goal):
+    queue = deque([tuple(start)])     #starting point in the queue
+    came_from = {tuple(start): None}  # Keeping track
+
+    while queue:
+        current = queue.popleft() #getting the next place to check
+
+        if current == tuple(goal):  
+            path = []               #storing the path we took
+            while current:
+                path.append(list(current))      #adding each step to opath
+                current = came_from[current]    #move to previous step
+            path.reverse()                      #putting path in the right order
+            return path[1:]                     # return the path skipping the starting point
+
+        for d in DIRECTIONS:        #moving in all directions
+            neighbor = (current[0] + d[0], current[1] + d[1])
+
+            if (
+                0 <= neighbor[0] < ROWS             
+                and 0 <= neighbor[1] < COLS        #ensuring its inside grid both col and row
+                and list(neighbor) not in walls #ensuring its not a wall
+                and neighbor not in came_from   
+            ):
+                came_from[neighbor] = current
+                queue.append(neighbor)
+
+    return []  # No path found
+
+
 
 def draw_grid():  # Draw the grid with walls
     for row in range(ROWS):
@@ -196,6 +228,13 @@ def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
     if path:
         pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
 
+
+'''######################################################################
+def move_pacman_with_bfs(target): #Move pacman using bfs
+    path = bfs(pacman_pos, target) 
+    if path:
+        pacman_pos[0], pacman_pos[1] = path[0]
+#########################################################################'''
 
 def move_enemies_randomly():  # Move enemies randomly
     for i, enemy in enumerate(enemies):
@@ -315,8 +354,14 @@ while running:  # Main game loop
     draw_timer()  # draw the timer
     draw_food_eaten()  # draw the food eaten counter
 
+    
     if food:  # Move Pacman toward the first power-up (or any target)
         move_pacman_with_a_star(food[0])  # pacman targets the first power-up
+
+    '''########################################################################################################
+    if food:  # Move Pacman toward the first power-up (or any target)
+        move_pacman_with_bfs(food[0])  # pacman targets the first power-up
+    #########################################################################################################'''
 
     move_enemies_randomly()  # ghosts move randomly
 
