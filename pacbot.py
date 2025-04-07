@@ -12,7 +12,7 @@ pygame.font.init()  # initializes the font module
 #Menu
 MENU = True
 selected_level = 0  # 0 = Beginner, 1 = Intermediate, 2 = Advanced
-levels = ["Beginner", "Intermediate", "Advanced"]
+levels = ["Beginner Ghost - Random", "Intermediate Ghost - BFS", "Advanced Ghost - DFS"]
 
 # Screen dimensions
 WIDTH, HEIGHT = 600, 400
@@ -80,7 +80,7 @@ def generate_food(num_food):  # Generate food in valid positions
         pos = [random.randint(0, ROWS - 1), random.randint(0, COLS - 1)]
         if (
             pos not in walls and pos not in food
-        ):  # ensure power-up is not in a wall or duplicate
+        ):  # ensure food is not in a wall or duplicate
             food.append(pos)
     return food
 
@@ -140,36 +140,35 @@ def a_star_search(
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
 
     return []
-
-######################
-def bfs(start, goal):
+# Currently used by the ghosts only ------------------------------------------
+def bfs(start, goal): # BFS algorithm to find the shortest path from start to goal
     queue = deque([tuple(start)])     #starting point in the queue
     came_from = {tuple(start): None}  # Keeping track
 
     while queue:
-        current = queue.popleft() #getting the next place to check
+        current = queue.popleft() # get the next place to check
 
         if current == tuple(goal):  
-            path = []               #storing the path we took
+            path = []               #storing the path taken
             while current:
-                path.append(list(current))      #adding each step to opath
-                current = came_from[current]    #move to previous step
-            path.reverse()                      #putting path in the right order
-            return path[1:]                     # return the path skipping the starting point
+                path.append(list(current))      # adding each step to opath
+                current = came_from[current]    # move to previous step
+            path.reverse()                      # put path in the right order
+            return path[1:]                     # return path skipping the starting point
 
-        for d in DIRECTIONS:        #moving in all directions
+        for d in DIRECTIONS: # Move in all directions
             neighbor = (current[0] + d[0], current[1] + d[1])
 
             if (
                 0 <= neighbor[0] < ROWS             
-                and 0 <= neighbor[1] < COLS        #ensuring its inside grid both col and row
-                and list(neighbor) not in walls #ensuring its not a wall
+                and 0 <= neighbor[1] < COLS        # ensure it's inside, grid both col and row
+                and list(neighbor) not in walls # ensure it's not a wall
                 and neighbor not in came_from   
             ):
                 came_from[neighbor] = current
                 queue.append(neighbor)
 
-    return []  # No path found
+    return []  # no path found
 
 
 
@@ -228,27 +227,29 @@ def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
     if path:
         pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
 
-
-'''######################################################################
-def move_pacman_with_bfs(target): #Move pacman using bfs
-    path = bfs(pacman_pos, target) 
+def move_enemy_with_bfs(enemy, target):  # Move a single enemy using BFS
+    path = bfs(enemy, target)
     if path:
-        pacman_pos[0], pacman_pos[1] = path[0]
-#########################################################################'''
+        return path[0]  # return the next position in the path
+    return enemy  # if no path is found, stay in the same position
 
-def move_enemies_randomly():  # Move enemies randomly
+
+def move_enemies():  # Move enemies based on the selected level
     for i, enemy in enumerate(enemies):
-        possible_moves = [
-            (enemy[0] + d[0], enemy[1] + d[1])
-            for d in DIRECTIONS
-            if 0 <= enemy[0] + d[0] < ROWS
-            and 0 <= enemy[1] + d[1] < COLS
-            and [enemy[0] + d[0], enemy[1] + d[1]] not in walls
-        ]
-        if possible_moves:
-            new_pos = random.choice(possible_moves)
+        if selected_level == 1:  # Intermediate level (BFS)
+            new_pos = move_enemy_with_bfs(enemy, pacman_pos)
             enemies[i] = [new_pos[0], new_pos[1]]
-
+        else:  # Beginner and Advanced levels (random movement) (Advanced level is not implemented but will have DFS-------)
+            possible_moves = [
+                (enemy[0] + d[0], enemy[1] + d[1])
+                for d in DIRECTIONS
+                if 0 <= enemy[0] + d[0] < ROWS
+                and 0 <= enemy[1] + d[1] < COLS
+                and [enemy[0] + d[0], enemy[1] + d[1]] not in walls
+            ]
+            if possible_moves:
+                new_pos = random.choice(possible_moves)
+                enemies[i] = [new_pos[0], new_pos[1]]
 
 def show_game_over():  # Show game over screen
     # Fill the screen with a semi-transparent overlay
@@ -303,7 +304,7 @@ def draw_menu(): # Draw the menu for selecting levels
     title_font = pygame.font.SysFont("Arial", 48)
     option_font = pygame.font.SysFont("Arial", 32)
 
-    title = title_font.render("PAC-BOT", True, YELLOW) 
+    title = title_font.render("PAC-BOT - A*", True, YELLOW) 
     screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 50)) 
 
     for i, level_name in enumerate(levels): # Display level names
@@ -355,26 +356,21 @@ while running:  # Main game loop
     draw_food_eaten()  # draw the food eaten counter
 
     
-    if food:  # Move Pacman toward the first power-up (or any target)
-        move_pacman_with_a_star(food[0])  # pacman targets the first power-up
+    if food:  # Move Pacman toward the first food (or any target)
+        move_pacman_with_a_star(food[0])  # pacman targets the first food
 
-    '''########################################################################################################
-    if food:  # Move Pacman toward the first power-up (or any target)
-        move_pacman_with_bfs(food[0])  # pacman targets the first power-up
-    #########################################################################################################'''
-
-    move_enemies_randomly()  # ghosts move randomly
+    move_enemies()  # ghosts move based on the selected level
 
     if pacman_pos in enemies:  # Check for collision with enemies
         show_game_over()
 
     for powerup in food[:]:  # Check for collision with food
         if pacman_pos == powerup:
-            food.remove(powerup)  # remove the power-up if Pacman collects it
+            food.remove(powerup)  # remove the pellet if Pacman collects it
             food_eaten += 1  # increment the food eaten counter
 
     if not food:  # Check if all food pellets are eaten
-        food = generate_food(food_count)  # Respawn food based on the selected level
+        food = generate_food(food_count)  # respawn food based on the selected level
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
