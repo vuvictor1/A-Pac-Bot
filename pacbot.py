@@ -298,13 +298,10 @@ while MENU:  # Menu loop
 
 # Initialize food after the menu loop
 if selected_level == 0:  # Beginner
-    ghost_speed = 1
     food_count = 2
 elif selected_level == 1:  # Intermediate
-    ghost_speed = 2
     food_count = 3
 else:  # Advanced
-    ghost_speed = 3
     food_count = 4
 
 food = generate_food(food_count)  # Generate initial food based on the selected level
