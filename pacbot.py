@@ -84,16 +84,6 @@ def generate_food(num_food):  # Generate food in valid positions
     return food
 
 
-if selected_level == 0:  # Beginner
-    ghost_speed = 1
-    food = generate_food(2)
-elif selected_level == 1:  # Intermediate
-    ghost_speed = 2
-    food = generate_food(3)
-else:  # Expert
-    ghost_speed = 3
-    food = generate_food(4)
-
 enemies = [ # Update the enemies list to spawn in the center box
     [center_row - 2, center_col],
     [center_row + 2, center_col],
@@ -292,13 +282,13 @@ def draw_menu(): # Draw the menu for selecting levels
 running = True
 game_duration = 60
 
-while MENU: # Menu loop
+while MENU:  # Menu loop
     draw_menu()
-    for event in pygame.event.get(): # Check for events
-        if event.type == pygame.QUIT: # Close the game
+    for event in pygame.event.get():  # Check for events
+        if event.type == pygame.QUIT:  # Close the game
             pygame.quit()
             exit()
-        if event.type == pygame.KEYDOWN: # Check for key presses
+        if event.type == pygame.KEYDOWN:  # Check for key presses
             if event.key == pygame.K_UP:
                 selected_level = (selected_level - 1) % len(levels)
             if event.key == pygame.K_DOWN:
@@ -306,8 +296,18 @@ while MENU: # Menu loop
             if event.key == pygame.K_RETURN:
                 MENU = False  # exit menu and start the game
 
+# Initialize food after the menu loop
+if selected_level == 0:  # Beginner
+    ghost_speed = 1
+    food = generate_food(2)
+elif selected_level == 1:  # Intermediate
+    ghost_speed = 2
+    food = generate_food(3)
+else:  # Advanced
+    ghost_speed = 3
+    food = generate_food(4)
 
-while running: # Main game loop
+while running:  # Main game loop
     screen.fill(BLACK)
     draw_grid()
     draw_pacman()
@@ -336,11 +336,11 @@ while running: # Main game loop
         if event.type == pygame.QUIT:
             running = False
 
-    pygame.display.flip() # update the display
+    pygame.display.flip()  # update the display
     clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
-    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000 
-    if elapsed_time >= game_duration: # Check if the game duration is over 60s
-        pygame.quit()
-        exit()
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
+    if elapsed_time >= game_duration:  # Check if the game duration is over 60s
+        show_game_over()  # Show the game over screen
+        running = False  # Exit the main game loop
 
 pygame.quit()
