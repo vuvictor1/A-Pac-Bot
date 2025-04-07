@@ -299,13 +299,15 @@ while MENU:  # Menu loop
 # Initialize food after the menu loop
 if selected_level == 0:  # Beginner
     ghost_speed = 1
-    food = generate_food(2)
+    food_count = 2
 elif selected_level == 1:  # Intermediate
     ghost_speed = 2
-    food = generate_food(3)
+    food_count = 3
 else:  # Advanced
     ghost_speed = 3
-    food = generate_food(4)
+    food_count = 4
+
+food = generate_food(food_count)  # Generate initial food based on the selected level
 
 while running:  # Main game loop
     screen.fill(BLACK)
@@ -330,7 +332,7 @@ while running:  # Main game loop
             food_eaten += 1  # increment the food eaten counter
 
     if not food:  # Check if all food pellets are eaten
-        food = generate_food(3)  # Respawn 3 new food pellets
+        food = generate_food(food_count)  # Respawn food based on the selected level
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -339,8 +341,8 @@ while running:  # Main game loop
     pygame.display.flip()  # update the display
     clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
     elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
-    if elapsed_time >= game_duration:  # Check if the game duration is over 60s
-        show_game_over()  # Show the game over screen
-        running = False  # Exit the main game loop
+    if elapsed_time > game_duration:  # Check if the game duration is over 60s
+        show_game_over()  # show the game over screen
+        running = False  # exit the main game loop
 
 pygame.quit()
