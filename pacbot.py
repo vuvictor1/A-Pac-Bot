@@ -1,4 +1,4 @@
-# Authors: Victor Vu, Christian Gomez, Alexander Hermenegildo & Jesus Fierro
+# Authors: Victor Vu, Cristian Gomez, Alexander Hermenegildo & Jesus Fierro
 # File: pacbot.py
 # Description: This file contains the main game loop and logic for the game.
 import pygame
@@ -140,6 +140,41 @@ def a_star_search(
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
 
     return []
+
+# DFS algorithm for ghost pathfinding on level 1
+def dfs(start, goal):
+    stack = [tuple(start)]  # Starting point on the stack
+    came_from = {tuple(start): None}  # Tracking the path
+    
+    while stack:
+        current = stack.pop()  # Get the most recently added node (LIFO)
+        
+        if current == tuple(goal):
+            path = []
+            while current:
+                path.append(list(current))
+                current = came_from[current]
+            path.reverse()
+            return path[1:]  # Return the path skipping the starting point
+        
+        # Randomize directions to make ghost movement less predictable
+        directions_copy = DIRECTIONS.copy()
+        random.shuffle(directions_copy)
+        
+        for d in directions_copy:
+            neighbor = (current[0] + d[0], current[1] + d[1])
+            
+            if (
+                0 <= neighbor[0] < ROWS
+                and 0 <= neighbor[1] < COLS
+                and list(neighbor) not in walls
+                and neighbor not in came_from
+            ):
+                came_from[neighbor] = current
+                stack.append(neighbor)
+    
+    return []  # No path found
+
 # Currently used by the ghosts only lvl2 advanced ------------------------------------------
 def bfs(start, goal): # BFS algorithm to find the shortest path from start to goal
     queue = deque([tuple(start)])     #starting point in the queue
@@ -233,13 +268,24 @@ def move_enemy_with_bfs(enemy, target):  # Move a single enemy using BFS
         return path[0]  # return the next position in the path
     return enemy  # if no path is found, stay in the same position
 
+def move_enemy_with_dfs(enemy, target):  # Move a single enemy using DFS
+    path = dfs(enemy, target)
+    if path:
+        return path[0]  # return the next position in the path
+    return enemy  # if no path is found, stay in the same position
+
+def check_collision_with_enemies():
+    """Check if Pacman collides with any enemy"""
+    for enemy in enemies:
+        # Explicitly check if pacman position matches enemy position
+        if pacman_pos[0] == enemy[0] and pacman_pos[1] == enemy[1]:
+            return True  # Collision detected
+    return False  # No collision
 
 def move_enemies():  # Move enemies based on the selected level
     for i, enemy in enumerate(enemies):
-        if selected_level == 2:  # BFS for Advanced level
-            new_pos = move_enemy_with_bfs(enemy, pacman_pos)
-            enemies[i] = [new_pos[0], new_pos[1]]
-        else:  # Beginner and Advanced levels (random movement) (Advanced level is not implemented but will have DFS-------)
+        # Add randomness to make ghost movement less predictable
+        if random.random() < 0.3:  # 30% chance to move randomly
             possible_moves = [
                 (enemy[0] + d[0], enemy[1] + d[1])
                 for d in DIRECTIONS
@@ -249,6 +295,25 @@ def move_enemies():  # Move enemies based on the selected level
             ]
             if possible_moves:
                 new_pos = random.choice(possible_moves)
+                enemies[i] = [new_pos[0], new_pos[1]]
+        else:
+            # Move based on the selected level
+            if selected_level == 0:  # Beginner: Random movement
+                possible_moves = [
+                    (enemy[0] + d[0], enemy[1] + d[1])
+                    for d in DIRECTIONS
+                    if 0 <= enemy[0] + d[0] < ROWS
+                    and 0 <= enemy[1] + d[1] < COLS
+                    and [enemy[0] + d[0], enemy[1] + d[1]] not in walls
+                ]
+                if possible_moves:
+                    new_pos = random.choice(possible_moves)
+                    enemies[i] = [new_pos[0], new_pos[1]]
+            elif selected_level == 1:  # Intermediate: DFS
+                new_pos = move_enemy_with_dfs(enemy, pacman_pos)
+                enemies[i] = [new_pos[0], new_pos[1]]
+            elif selected_level == 2:  # Advanced: BFS
+                new_pos = move_enemy_with_bfs(enemy, pacman_pos)
                 enemies[i] = [new_pos[0], new_pos[1]]
 
 def show_game_over():  # Show game over screen
@@ -298,6 +363,11 @@ food_eaten = 0  # initialize the counter for food pellets eaten
 def draw_food_eaten():  # Function to display the number of food pellets eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
     screen.blit(food_text, (115, HEIGHT - 21))  # display right of timer
+
+def draw_level_info():  # Function to display the current level
+    level_text = metrics_font.render(f"Level: {levels[selected_level]}", True, WHITE)
+    level_rect = level_text.get_rect(topright=(WIDTH - 20, HEIGHT - 21))
+    screen.blit(level_text, level_rect)  # display at bottom right
 
 def draw_menu(): # Draw the menu for selecting levels
     screen.fill(BLACK)
@@ -354,15 +424,16 @@ while running:  # Main game loop
     draw_enemies()
     draw_timer()  # draw the timer
     draw_food_eaten()  # draw the food eaten counter
+    draw_level_info()  # draw the current level info
 
-    
     if food:  # Move Pacman toward the first food (or any target)
         move_pacman_with_a_star(food[0])  # pacman targets the first food
 
     move_enemies()  # ghosts move based on the selected level
 
-    if pacman_pos in enemies:  # Check for collision with enemies
+    if check_collision_with_enemies():  # Check for collision with enemies
         show_game_over()
+        running = False  # End the game loop after collision
 
     for powerup in food[:]:  # Check for collision with food
         if pacman_pos == powerup:
