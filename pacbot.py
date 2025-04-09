@@ -364,11 +364,6 @@ def draw_food_eaten():  # Function to display the number of food pellets eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
     screen.blit(food_text, (115, HEIGHT - 21))  # display right of timer
 
-def draw_level_info():  # Function to display the current level
-    level_text = metrics_font.render(f"Level: {levels[selected_level]}", True, WHITE)
-    level_rect = level_text.get_rect(topright=(WIDTH - 20, HEIGHT - 21))
-    screen.blit(level_text, level_rect)  # display at bottom right
-
 def draw_menu(): # Draw the menu for selecting levels
     screen.fill(BLACK)
     title_font = pygame.font.SysFont("Arial", 48)
@@ -424,7 +419,6 @@ while running:  # Main game loop
     draw_enemies()
     draw_timer()  # draw the timer
     draw_food_eaten()  # draw the food eaten counter
-    draw_level_info()  # draw the current level info
 
     if food:  # Move Pacman toward the first food (or any target)
         move_pacman_with_a_star(food[0])  # pacman targets the first food
