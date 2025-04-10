@@ -13,6 +13,8 @@ pygame.font.init()  # initializes the font module
 MENU = True
 selected_level = 0  # 0 = Beginner, 1 = Intermediate, 2 = Advanced
 levels = ["Beginner Ghost - DFS", "Intermediate Ghost - BFS", "Advanced Ghost - A*"]
+selected_bot = 0
+algorithm = ["A*", "BFS", "DFS"]
 
 # Screen dimensions
 WIDTH, HEIGHT = 800, 600  # Updated dimensions
@@ -367,6 +369,9 @@ def draw_menu(): # Draw the menu for selecting levels
 
     prompt = metrics_font.render("Use Up/Down Arrows to choose, Enter to start", True, WHITE)
     screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 90)) 
+
+    algo_label = option_font.render("Pac-Bot AI: " + algorithm[selected_bot], True, WHITE)
+    screen.blit(algo_label, (WIDTH // 2 - algo_label.get_width() // 2, 90))
     pygame.display.flip() # update the display
 
 # Main game loop
@@ -386,6 +391,10 @@ while MENU:  # Menu loop
                 selected_level = (selected_level + 1) % len(levels)
             if event.key == pygame.K_RETURN:
                 MENU = False  # exit menu and start the game
+            if event.key == pygame.K_LEFT:
+                selected_bot = (selected_bot - 1) % len(algorithm)
+            if event.key == pygame.K_RIGHT:
+                selected_bot = (selected_bot + 1) % len(algorithm)
 
 # Initialize food after the menu loop
 food_count = 3  # Set food count to 3 for all levels
