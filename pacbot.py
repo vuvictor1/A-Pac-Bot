@@ -364,14 +364,9 @@ while MENU:  # Menu loop
                 MENU = False  # exit menu and start the game
 
 # Initialize food after the menu loop
-if selected_level == 0:  # Beginner
-    food_count = 2
-elif selected_level == 1:  # Intermediate
-    food_count = 3
-else:  # Advanced
-    food_count = 4
+food_count = 3  # Set food count to 3 for all levels
+food = generate_food(food_count)  # generate initial food
 
-food = generate_food(food_count)  # generate initial food based on the selected level
 while running:  # Main game loop
     screen.fill(BLACK)
     draw_grid()
@@ -395,7 +390,7 @@ while running:  # Main game loop
             food_eaten += 1  # increment the food eaten counter
 
     if not food:  # Check if all food pellets are eaten
-        food = generate_food(food_count)  # respawn food based on the selected level
+        food = generate_food(food_count)  # respawn food
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
