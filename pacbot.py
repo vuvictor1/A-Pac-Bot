@@ -15,8 +15,12 @@ selected_level = 0  # 0 = Beginner, 1 = Intermediate, 2 = Advanced
 levels = ["Beginner Ghost - DFS", "Intermediate Ghost - BFS", "Advanced Ghost - A*"]
 
 # Screen dimensions
-WIDTH, HEIGHT = 600, 400
+WIDTH, HEIGHT = 800, 600  # Updated dimensions
 TILE_SIZE = 20
+
+# Reserve a metrics area at the bottom of the screen
+METRICS_HEIGHT = 50  # Height of the metrics area
+ROWS, COLS = (HEIGHT - METRICS_HEIGHT) // TILE_SIZE, WIDTH // TILE_SIZE
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -33,7 +37,7 @@ pygame.display.set_caption("Pac-Bot A* Search")  # sets the window title
 clock = pygame.time.Clock()  # clock object to control the frame rate
 
 # Create a grid
-ROWS, COLS = HEIGHT // TILE_SIZE, WIDTH // TILE_SIZE
+ROWS, COLS = (HEIGHT - METRICS_HEIGHT) // TILE_SIZE, WIDTH // TILE_SIZE
 grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 pacman_pos = [1, 1]  # pacman position
 walls = [] # list to store wall positions
@@ -135,8 +139,7 @@ def a_star_search(
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
     return []
 
-# DFS algorithm for ghost pathfinding on level 0
-def dfs(start, goal):
+def dfs(start, goal): # DFS algo lvl0 to find a path from start to goal
     stack = [tuple(start)]  # starting point on the stack
     came_from = {tuple(start): None}  # tracking the path
     
@@ -169,8 +172,7 @@ def dfs(start, goal):
     
     return []  # no path found
 
-# Currently used by the ghosts only lvl1 intermediate ------------------------------------------
-def bfs(start, goal): # BFS algorithm to find the shortest path from start to goal
+def bfs(start, goal): # BFS algorithm lvl1 to find the shortest path from start to goal
     queue = deque([tuple(start)])     #starting point in the queue
     came_from = {tuple(start): None}  # Keeping track
 
@@ -244,10 +246,14 @@ def draw_enemies():  # Draw enemies
             TILE_SIZE // 2,
         )
 
+steps_taken = 0 # initialize the steps counter for Pacman
+
 def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
+    global steps_taken
     path = a_star_search(pacman_pos, target)
     if path:
         pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
+        steps_taken += 1  # increment the steps counter
 
 def move_enemy_with_bfs(enemy, target):  # Move a single enemy using BFS
     path = bfs(enemy, target)
@@ -321,13 +327,31 @@ def draw_timer():  # Function to draw the timer and time remaining on the screen
     remaining_time = max(0, game_duration - elapsed_time)  # calculate remaining time
     timer_text = metrics_font.render(f"Time: {elapsed_time}s", True, WHITE)
     remaining_text = metrics_font.render(f"Time Remaining: {remaining_time}s", True, WHITE)
-    screen.blit(timer_text, (20, HEIGHT - 21))  # display timer at the bottom left
-    screen.blit(remaining_text, (250, HEIGHT - 21))  # display remaining time to the right of food eaten
+    screen.blit(timer_text, (20, HEIGHT - METRICS_HEIGHT + 10))  # display timer in metrics area
+    screen.blit(remaining_text, (250, HEIGHT - METRICS_HEIGHT + 10))  # display remaining time
+
 food_eaten = 0  # initialize the counter for food pellets eaten
 
 def draw_food_eaten():  # Function to display the number of food pellets eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
-    screen.blit(food_text, (115, HEIGHT - 21))  # display right of timer
+    screen.blit(food_text, (500, HEIGHT - METRICS_HEIGHT + 10))  # display in metrics area
+
+def draw_steps_taken():  # Function to display the number of steps Pacman has taken
+    steps_text = metrics_font.render(f"Steps Taken: {steps_taken}", True, WHITE)
+    screen.blit(steps_text, (20, HEIGHT - METRICS_HEIGHT + 10))  # display in metrics area
+
+def draw_metrics():  # Function to display both steps taken and time remaining
+    global steps_taken
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # convert to seconds
+    remaining_time = max(0, game_duration - elapsed_time)  # calculate remaining time
+
+    # Render steps taken
+    steps_text = metrics_font.render(f"Steps Taken: {steps_taken}", True, WHITE)
+    screen.blit(steps_text, (20, HEIGHT - METRICS_HEIGHT + 10))  # display steps in metrics area
+
+    # Render time remaining
+    time_text = metrics_font.render(f"Time Remaining: {remaining_time}s", True, WHITE)
+    screen.blit(time_text, (250, HEIGHT - METRICS_HEIGHT + 10))  # display time in metrics area
 
 def draw_menu(): # Draw the menu for selecting levels
     screen.fill(BLACK)
@@ -339,10 +363,10 @@ def draw_menu(): # Draw the menu for selecting levels
     for i, level_name in enumerate(levels): # Display level names
         color = GREEN if i == selected_level else WHITE
         text = option_font.render(f"Level {i}: {level_name}", True, color)
-        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 150 + i * 50))
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 150 + i * 90))
 
     prompt = metrics_font.render("Use Up/Down Arrows to choose, Enter to start", True, WHITE)
-    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 40)) 
+    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 90)) 
     pygame.display.flip() # update the display
 
 # Main game loop
@@ -373,8 +397,8 @@ while running:  # Main game loop
     draw_pacman()
     draw_food()
     draw_enemies()
-    draw_timer()  
-    draw_food_eaten()  
+    draw_metrics()  # Display both steps taken and time remaining
+    draw_food_eaten()
 
     if food:  # Move Pacman toward the first food (or any target)
         move_pacman_with_a_star(food[0])  # pacman targets the first food
