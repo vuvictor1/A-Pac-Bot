@@ -82,9 +82,10 @@ def generate_food(num_food):  # Generate food in valid positions
     food = []
     while len(food) < num_food:
         pos = [random.randint(0, ROWS - 1), random.randint(0, COLS - 1)]
-        if pos not in walls and pos not in [f[0] for f in food]:  # ensure food is not in a wall or duplicate
-            cost = random.randint(1, 3)  # Assign a random cost 1-3
-            food.append((pos, cost))  # Store food as a tuple (position, cost)
+        if (
+            pos not in walls and pos not in food
+        ):  # ensure food is not in a wall or duplicate
+            food.append(pos)
     return food
 
 enemies = [ # Update the enemies list to spawn in the center box
@@ -100,20 +101,22 @@ font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
 def heuristic(a, b):  # Calculate the Manhattan distance between two points
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def a_star_search(start, goal, goal_cost):  # A* search algorithm
+def a_star_search(
+    start, goal
+):  # A* search algorithm to find the shortest path from start to goal
     open_set = []
-    heapq.heappush(open_set, (0, tuple(start)))  # Convert start to tuple
+    heapq.heappush(open_set, (0, tuple(start)))  # convert start to tuple
     came_from = {}
-    g_score = {tuple(start): 0}  # Cost to reach the current node
-    f_score = {tuple(start): heuristic(start, goal)}  # Priority based on distance only
+    g_score = {tuple(start): 0}  # convert start to tuple
+    f_score = {tuple(start): heuristic(start, goal)}  # convert start to tuple
 
     while open_set:  # Pop the node with the lowest f_score
         _, current = heapq.heappop(open_set)
 
-        if current == tuple(goal):  # If the goal is reached
+        if current == tuple(goal):  # Convert goal to tuple
             path = []
             while current in came_from:
-                path.append(list(current))  # Convert tuple back to list for the path
+                path.append(list(current))  # convert tuple back to list for path
                 current = came_from[current]
             path.reverse()
             return path
@@ -122,7 +125,7 @@ def a_star_search(start, goal, goal_cost):  # A* search algorithm
             neighbor = (
                 current[0] + direction[0],
                 current[1] + direction[1],
-            )  # Use tuple
+            )  # use tuple
 
             if (  # Check if neighbor is within bounds and not a wall
                 0 <= neighbor[0] < ROWS
@@ -134,7 +137,7 @@ def a_star_search(start, goal, goal_cost):  # A* search algorithm
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
-                    f_score[neighbor] = tentative_g_score + heuristic(neighbor, goal)  # Exclude goal_cost
+                    f_score[neighbor] = tentative_g_score + heuristic(neighbor, goal)
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
     return []
 
@@ -222,14 +225,13 @@ def draw_pacman():  # Draw Pacman
     )
 
 def draw_food():  # Draw food
-    for pellets, cost in food:
-        color = GREEN if cost == 1 else YELLOW if cost == 2 else RED  # Assign colors based on cost
+    for powerup in food:
         pygame.draw.circle(
             screen,
-            color,
+            GREEN,
             (
-                pellets[1] * TILE_SIZE + TILE_SIZE // 2,
-                pellets[0] * TILE_SIZE + TILE_SIZE // 2,
+                powerup[1] * TILE_SIZE + TILE_SIZE // 2,
+                powerup[0] * TILE_SIZE + TILE_SIZE // 2,
             ),
             TILE_SIZE // 4,
         )
@@ -250,11 +252,10 @@ steps_taken = 0 # initialize the steps counter for Pacman
 
 def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
     global steps_taken
-    target_pos, target_cost = target  # Unpack position and cost
-    path = a_star_search(pacman_pos, target_pos, target_cost)  # Pass cost to A*
+    path = a_star_search(pacman_pos, target)
     if path:
-        pacman_pos[0], pacman_pos[1] = path[0]  # Move to the next position in the path
-        steps_taken += 1  # Increment the steps counter
+        pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
+        steps_taken += 1  # increment the steps counter
 
 def move_enemy_with_bfs(enemy, target):  # Move a single enemy using BFS
     path = bfs(enemy, target)
@@ -269,7 +270,7 @@ def move_enemy_with_dfs(enemy, target):  # Move a single enemy using DFS
     return enemy  # if no path is found, stay in the same position
 
 def move_enemy_with_a_star(enemy, target):  # Move a single enemy using A*
-    path = a_star_search(enemy, target, 0)  # Pass 0 as the goal_cost for enemies
+    path = a_star_search(enemy, target)
     if path:
         return path[0]  # return the next position in the path
     return enemy  # if no path is found, stay in the same position
@@ -409,16 +410,16 @@ while running:  # Main game loop
     draw_food_eaten()
 
     if food:  # Move Pacman toward the first food (or any target)
-        move_pacman_with_a_star(food[0])  # Pacman targets the first food
+        move_pacman_with_a_star(food[0])  # pacman targets the first food
     move_enemies()  # ghosts move based on the selected level
 
     if check_collision_with_enemies():  # Check for collision with enemies
         show_game_over()
         running = False  # End the game loop after collision
 
-    for pellets, cost in food[:]:  # Check for collision with food
-        if pacman_pos == pellets:
-            food.remove((pellets, cost))  # remove the pellet if Pacman collects it
+    for powerup in food[:]:  # Check for collision with food
+        if pacman_pos == powerup:
+            food.remove(powerup)  # remove the pellet if Pacman collects it
             food_eaten += 1  # increment the food eaten counter
 
     if not food:  # Check if all food pellets are eaten
