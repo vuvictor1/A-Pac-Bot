@@ -27,7 +27,7 @@ ROWS, COLS = (HEIGHT - METRICS_HEIGHT) // TILE_SIZE, WIDTH // TILE_SIZE
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
-RED = (255, 0, 0)
+RED = (255, 102, 102)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 DARK_GRAY = (50, 50, 50)
@@ -367,11 +367,13 @@ def draw_menu(): # Draw the menu for selecting levels
         text = option_font.render(f"Level {i}: {level_name}", True, color)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 150 + i * 90))
 
-    prompt = metrics_font.render("Use Up/Down Arrows to choose, Enter to start", True, WHITE)
-    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 90)) 
+    prompt = metrics_font.render("Use: Up/Down Arrows to choose Lvl. Enter to start.", True, WHITE)
+    screen.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 180)) 
+    prompt2 = metrics_font.render("Left/Right Arrows to choose Pac-bot AI.", True, WHITE)
+    screen.blit(prompt2, (WIDTH // 2 - prompt2.get_width() // 2, HEIGHT - 140)) 
 
-    algo_label = option_font.render("Pac-Bot AI: " + algorithm[selected_bot], True, WHITE)
-    screen.blit(algo_label, (WIDTH // 2 - algo_label.get_width() // 2, 90))
+    algo_label = option_font.render("Pac-Bot AI: " + algorithm[selected_bot], True, RED)
+    screen.blit(algo_label, (WIDTH // 2 - algo_label.get_width() // 2, 100))
     pygame.display.flip() # update the display
 
 # Main game loop
