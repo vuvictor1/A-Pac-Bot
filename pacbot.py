@@ -101,6 +101,19 @@ font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
 def heuristic(a, b):  # Calculate the Manhattan distance between two points
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
+# Define additional path costs for tiles adjacent to some pellets
+additional_costs = {}
+
+def update_additional_costs(food):
+    global additional_costs
+    additional_costs = {}
+    for pellet in food:
+        for direction in DIRECTIONS:
+            neighbor = (pellet[0] + direction[0], pellet[1] + direction[1])
+            if 0 <= neighbor[0] < ROWS and 0 <= neighbor[1] < COLS and list(neighbor) not in walls:
+                # Assign a random additional cost between 1 and 14 (minimum total cost = 2)
+                additional_costs[tuple(neighbor)] = random.randint(1, 14) + 1
+
 def a_star_search(
     start, goal
 ):  # A* search algorithm to find the shortest path from start to goal
@@ -132,7 +145,9 @@ def a_star_search(
                 and 0 <= neighbor[1] < COLS
                 and list(neighbor) not in walls
             ):
-                tentative_g_score = g_score[current] + 1
+                # Calculate the additional cost for the neighbor
+                additional_cost = additional_costs.get(neighbor, 0)
+                tentative_g_score = g_score[current] + 1 + additional_cost
 
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
@@ -202,7 +217,7 @@ def bfs(start, goal): # BFS algorithm lvl1 to find the shortest path from start 
                 queue.append(neighbor)
     return []  # no path found
 
-def draw_grid():  # Draw the grid with walls
+def draw_grid():  # Draw the grid with walls and additional cost tiles
     for row in range(ROWS):
         for col in range(COLS):
             rect = pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -210,6 +225,15 @@ def draw_grid():  # Draw the grid with walls
                 pygame.draw.rect(  # draw walls as dark gray rectangles
                     screen, DARK_GRAY, rect
                 )
+            elif (row, col) in additional_costs:  # Highlight tiles with additional costs
+                cost = additional_costs[(row, col)]
+                if cost <= 5:  # Lower cost
+                    color = GREEN
+                elif cost <= 10:  # Moderate cost
+                    color = YELLOW
+                else:  # High cost
+                    color = RED
+                pygame.draw.rect(screen, color, rect)
             else:
                 pygame.draw.rect(screen, BLUE, rect, 1)  # draw grid lines in blue
 
@@ -281,17 +305,25 @@ def check_collision_with_enemies(): # Check for collision with enemies
             return True  # Collision detected
     return False  # No collision
 
+# Add a counter to control ghost movement speed
+ghost_move_counter = 0
+ghost_move_delay = 3  # Move ghosts every 3 frames
+
 def move_enemies():  # Move enemies based on the selected level
-    for i, enemy in enumerate(enemies): 
-        if selected_level == 0:  # Beginner: DFS
-            new_pos = move_enemy_with_dfs(enemy, pacman_pos)
-            enemies[i] = [new_pos[0], new_pos[1]]
-        elif selected_level == 1:  # Intermediate: BFS
-            new_pos = move_enemy_with_bfs(enemy, pacman_pos)
-            enemies[i] = [new_pos[0], new_pos[1]]
-        elif selected_level == 2:  # Advanced: A*
-            new_pos = move_enemy_with_a_star(enemy, pacman_pos)
-            enemies[i] = [new_pos[0], new_pos[1]]
+    global ghost_move_counter
+    ghost_move_counter += 1
+    if ghost_move_counter >= ghost_move_delay:  # Only move ghosts every few frames
+        for i, enemy in enumerate(enemies): 
+            if selected_level == 0:  # Beginner: DFS
+                new_pos = move_enemy_with_dfs(enemy, pacman_pos)
+                enemies[i] = [new_pos[0], new_pos[1]]
+            elif selected_level == 1:  # Intermediate: BFS
+                new_pos = move_enemy_with_bfs(enemy, pacman_pos)
+                enemies[i] = [new_pos[0], new_pos[1]]
+            elif selected_level == 2:  # Advanced: A*
+                new_pos = move_enemy_with_a_star(enemy, pacman_pos)
+                enemies[i] = [new_pos[0], new_pos[1]]
+        ghost_move_counter = 0  # Reset the counter
 
 def show_game_over():  # Show game over screen
     overlay = pygame.Surface((WIDTH, HEIGHT))
@@ -401,6 +433,7 @@ while MENU:  # Menu loop
 # Initialize food after the menu loop
 food_count = 3  # Set food count to 3 for all levels
 food = generate_food(food_count)  # generate initial food
+update_additional_costs(food)
 
 while running:  # Main game loop
     screen.fill(BLACK)
@@ -423,9 +456,11 @@ while running:  # Main game loop
         if pacman_pos == powerup:
             food.remove(powerup)  # remove the pellet if Pacman collects it
             food_eaten += 1  # increment the food eaten counter
+            update_additional_costs(food)  # Update additional costs
 
     if not food:  # Check if all food pellets are eaten
         food = generate_food(food_count)  # respawn food
+        update_additional_costs(food)  # Update additional costs
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
