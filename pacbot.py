@@ -391,25 +391,41 @@ def draw_menu(): # Draw the menu for selecting levels
 # ==== Movement/Collision logic ===================================================================
 #
 # =================================================================================================
-def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
-    global steps_taken
-    path = a_star_search(pacman_pos, target)
-    if path:
-        pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
-        steps_taken += 1  # increment the steps counter
+# Add a global variable to track Pacman's recent positions
+recent_positions = deque(maxlen=5)  # Keep track of the last 5 positions
 
 def move_pacman_with_algorithm(target): # Move Pacman using the selected algorithm
-    global steps_taken
+    global steps_taken, recent_positions
+
+    # Add the current position to the recent positions
+    recent_positions.append(tuple(pacman_pos))
+
+    # Check if Pacman is oscillating between positions
+    if len(recent_positions) == recent_positions.maxlen and len(set(recent_positions)) <= 2:
+        # If oscillating, move directly toward the target
+        if pacman_pos[0] < target[0]:
+            pacman_pos[0] += 1
+        elif pacman_pos[0] > target[0]:
+            pacman_pos[0] -= 1
+        elif pacman_pos[1] < target[1]:
+            pacman_pos[1] += 1
+        elif pacman_pos[1] > target[1]:
+            pacman_pos[1] -= 1
+        steps_taken += 1
+        return
+
+    # Use the selected algorithm to find a path
     if selected_bot == 0:  # A*
         path = a_star_search(pacman_pos, target)
     elif selected_bot == 1:  # BFS
         path = bfs(pacman_pos, target)
     elif selected_bot == 2:  # DFS
         path = dfs(pacman_pos, target)
-    
+
+    # Move Pacman along the path if a path exists
     if path:
-        pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
-        steps_taken += 1  # increment the steps counter
+        pacman_pos[0], pacman_pos[1] = path[0]  # Move to the next position in the path
+        steps_taken += 1  # Increment the steps counter
 
 def move_enemy_with_bfs(enemy, target):  # Move a single enemy using BFS
     path = bfs(enemy, target)
