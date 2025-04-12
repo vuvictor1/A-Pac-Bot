@@ -14,7 +14,6 @@ pygame.font.init()  # initializes the font module
 # ==== Initialize Game settings ===========================================================
 #
 # =================================================================================================
-
 # Set font for text and timer
 font = pygame.font.SysFont("Arial", 36)  # font object for rendering text
 metrics_font = pygame.font.SysFont("Arial", 20) # smaller font for the timer
@@ -29,14 +28,11 @@ levels = ["Beginner Ghost - DFS", "Intermediate Ghost - BFS", "Advanced Ghost - 
 selected_bot = 0
 algorithm = ["A*", "BFS", "DFS"]
 
-# Game duration
-game_duration = 60
+game_duration = 60 # seconds
 
 # Screen dimensions
 WIDTH, HEIGHT = 800, 600  # Updated dimensions
 TILE_SIZE = 20
-
-# Reserve a metrics area at the bottom of the screen
 METRICS_HEIGHT = 50  # Height of the metrics area
 
 # Colors
@@ -112,9 +108,7 @@ enemies = [ # Update the enemies list to spawn in the center box
 ]
 
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # directions: right, down, left, up
-
-# Define additional path costs for tiles adjacent to some pellets
-additional_costs = {}
+additional_costs = {} # Initialize additional costs
 
 def update_costs_based_on_ghosts(): # Update path costs based only on proximity to ghosts
     global additional_costs
@@ -136,31 +130,24 @@ def update_costs_based_on_ghosts_and_food(food): # Update path costs based on pr
     global additional_costs
     new_costs = {}  # Temporary dictionary to calculate new costs
 
-    # Add costs based on ghost proximity
-    for row in range(ROWS):
+    for row in range(ROWS): # Loop through the grid
         for col in range(COLS):
             if [row, col] not in walls:  # Skip walls
-                # Calculate the minimum distance to any ghost
-                min_distance = min(
+                min_distance = min( # Calculate distance to ghosts
                     abs(row - ghost[0]) + abs(col - ghost[1]) for ghost in enemies
                 )
-                # Assign a cost inversely proportional to the distance
-                # Closer to ghosts = higher cost
-                if min_distance <= 3:  # Example: within 3 tiles of a ghost
+                # Assign a cost inversely proportional to the distance, closer to ghosts = higher cost
+                if min_distance <= 3:  # within 3 tiles of a ghost
                     new_costs[(row, col)] = max(1, 10 - min_distance)
-
     additional_costs = new_costs  # Update the global additional costs
 
 # ==== Search Algorithms ==========================================================================
 #
 # =================================================================================================
-
-# Calculate the heuristic
 def heuristic(a, b):  # Calculate the Manhattan distance between two points
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-# A* search algorithm to find the shortest path from start to goal
-def a_star_search(
+def a_star_search( # start, goal):  # A* search algorithm
     start, goal
 ):  
     open_set = []
@@ -391,25 +378,36 @@ def draw_menu(): # Draw the menu for selecting levels
 # ==== Movement/Collision logic ===================================================================
 #
 # =================================================================================================
-def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
-    global steps_taken
-    path = a_star_search(pacman_pos, target)
-    if path:
-        pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
-        steps_taken += 1  # increment the steps counter
+recent_positions = deque(maxlen=5)  # Keep track of the last 5 positions
 
 def move_pacman_with_algorithm(target): # Move Pacman using the selected algorithm
-    global steps_taken
+    global steps_taken, recent_positions
+    recent_positions.append(tuple(pacman_pos)) # store the current position
+
+    # Check if Pacman is oscillating between positions
+    if len(recent_positions) == recent_positions.maxlen and len(set(recent_positions)) <= 2: 
+        if pacman_pos[0] < target[0]: # Move in the direction of the target
+            pacman_pos[0] += 1
+        elif pacman_pos[0] > target[0]:
+            pacman_pos[0] -= 1
+        elif pacman_pos[1] < target[1]:
+            pacman_pos[1] += 1
+        elif pacman_pos[1] > target[1]:
+            pacman_pos[1] -= 1
+        steps_taken += 1
+        return
+
+    # Use the selected algorithm to find a path
     if selected_bot == 0:  # A*
         path = a_star_search(pacman_pos, target)
     elif selected_bot == 1:  # BFS
         path = bfs(pacman_pos, target)
     elif selected_bot == 2:  # DFS
         path = dfs(pacman_pos, target)
-    
-    if path:
-        pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
-        steps_taken += 1  # increment the steps counter
+
+    if path: # Path found
+        pacman_pos[0], pacman_pos[1] = path[0]  # Move to the next position in the path
+        steps_taken += 1  # Increment the steps counter
 
 def move_enemy_with_bfs(enemy, target):  # Move a single enemy using BFS
     path = bfs(enemy, target)
@@ -474,7 +472,6 @@ def show_game_over():  # Show game over screen
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 exit()
-
 start_time = pygame.time.get_ticks() # intialize the start time
 
 # ==== Main Game Loop =============================================================================
@@ -513,8 +510,6 @@ if __name__ == "__main__":
         draw_enemies()
         draw_metrics()
         draw_food_eaten()
-
-        # Update costs based on ghost proximity
         update_costs_based_on_ghosts_and_food(food)
 
         if food:
@@ -543,5 +538,4 @@ if __name__ == "__main__":
         if elapsed_time > game_duration:
             show_game_over()
             running = False
-
     pygame.quit()
