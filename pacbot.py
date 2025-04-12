@@ -116,15 +116,40 @@ DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # directions: right, down, left
 # Define additional path costs for tiles adjacent to some pellets
 additional_costs = {}
 
-def update_additional_costs(food):
+def update_costs_based_on_ghosts(): # Update path costs based only on proximity to ghosts
     global additional_costs
-    additional_costs = {}
-    for pellet in food:
-        for direction in DIRECTIONS:
-            neighbor = (pellet[0] + direction[0], pellet[1] + direction[1])
-            if 0 <= neighbor[0] < ROWS and 0 <= neighbor[1] < COLS and list(neighbor) not in walls:
-                # Assign a random additional cost between 1 and 14 (minimum total cost = 2)
-                additional_costs[tuple(neighbor)] = random.randint(1, 14) + 1
+    additional_costs = {}  # Reset additional costs
+
+    for row in range(ROWS):
+        for col in range(COLS):
+            if [row, col] not in walls:  # Skip walls
+                # Calculate the minimum distance to any ghost
+                min_distance = min(
+                    abs(row - ghost[0]) + abs(col - ghost[1]) for ghost in enemies
+                )
+                # Assign a cost inversely proportional to the distance
+                # Closer to ghosts = higher cost
+                if min_distance <= 3:  # Example: within 3 tiles of a ghost
+                    additional_costs[(row, col)] = 10 - min_distance  # Cost: 9, 8, 7
+
+def update_costs_based_on_ghosts_and_food(food): # Update path costs based on proximity to ghosts and food
+    global additional_costs
+    new_costs = {}  # Temporary dictionary to calculate new costs
+
+    # Add costs based on ghost proximity
+    for row in range(ROWS):
+        for col in range(COLS):
+            if [row, col] not in walls:  # Skip walls
+                # Calculate the minimum distance to any ghost
+                min_distance = min(
+                    abs(row - ghost[0]) + abs(col - ghost[1]) for ghost in enemies
+                )
+                # Assign a cost inversely proportional to the distance
+                # Closer to ghosts = higher cost
+                if min_distance <= 3:  # Example: within 3 tiles of a ghost
+                    new_costs[(row, col)] = max(1, 10 - min_distance)
+
+    additional_costs = new_costs  # Update the global additional costs
 
 # ==== Search Algorithms ==========================================================================
 #
@@ -246,20 +271,26 @@ def draw_grid():  # Draw the grid with walls and additional cost tiles
         for col in range(COLS):
             rect = pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE)
             if [row, col] in walls:
-                pygame.draw.rect(  # draw walls as dark gray rectangles
+                pygame.draw.rect(  # Draw walls as dark gray rectangles
                     screen, DARK_GRAY, rect
                 )
+            elif [row, col] in enemies:  # Skip drawing tiles over ghosts
+                continue
             elif (row, col) in additional_costs:  # Highlight tiles with additional costs
                 cost = additional_costs[(row, col)]
-                if cost <= 5:  # Lower cost
-                    color = GREEN
-                elif cost <= 10:  # Moderate cost
-                    color = YELLOW
-                else:  # High cost
-                    color = RED
-                pygame.draw.rect(screen, color, rect)
+                # Create a transparent surface for the tile
+                tile_surface = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+                # Assign colors based on cost
+                if cost == 9:  # High cost (dangerous, adjacent to ghosts)
+                    color = (255, 102, 102, 100)  # Light red with transparency
+                elif cost == 8:  # Moderate cost (2 tiles away from ghosts)
+                    color = (255, 255, 102, 100)  # Light yellow with transparency
+                elif cost == 7:  # Low cost (3 tiles away from ghosts)
+                    color = (102, 255, 102, 100)  # Light green with transparency
+                tile_surface.fill(color)  # Fill the surface with the transparent color
+                screen.blit(tile_surface, rect.topleft)  # Blit the surface onto the screen
             else:
-                pygame.draw.rect(screen, BLUE, rect, 1)  # draw grid lines in blue
+                pygame.draw.rect(screen, BLUE, rect, 1)  # Draw grid lines in blue
 
 def draw_pacman():  # Draw Pacman
     pygame.draw.circle(
@@ -367,8 +398,7 @@ def move_pacman_with_a_star(target):  # Move Pacman using A* to reach the target
         pacman_pos[0], pacman_pos[1] = path[0]  # move to the next position in the path
         steps_taken += 1  # increment the steps counter
 
-def move_pacman_with_algorithm(target):
-    """Move Pacman using the algorithm based on selected_bot"""
+def move_pacman_with_algorithm(target): # Move Pacman using the selected algorithm
     global steps_taken
     if selected_bot == 0:  # A*
         path = a_star_search(pacman_pos, target)
@@ -405,25 +435,17 @@ def check_collision_with_enemies(): # Check for collision with enemies
             return True  # Collision detected
     return False  # No collision
 
-# Add a counter to control ghost movement speed
-ghost_move_counter = 0
-ghost_move_delay = 3  # Move ghosts every 3 frames
-
 def move_enemies():  # Move enemies based on the selected level
-    global ghost_move_counter
-    ghost_move_counter += 1
-    if ghost_move_counter >= ghost_move_delay:  # Only move ghosts every few frames
-        for i, enemy in enumerate(enemies): 
-            if selected_level == 0:  # Beginner: DFS
-                new_pos = move_enemy_with_dfs(enemy, pacman_pos)
-                enemies[i] = [new_pos[0], new_pos[1]]
-            elif selected_level == 1:  # Intermediate: BFS
-                new_pos = move_enemy_with_bfs(enemy, pacman_pos)
-                enemies[i] = [new_pos[0], new_pos[1]]
-            elif selected_level == 2:  # Advanced: A*
-                new_pos = move_enemy_with_a_star(enemy, pacman_pos)
-                enemies[i] = [new_pos[0], new_pos[1]]
-        ghost_move_counter = 0  # Reset the counter
+    for i, enemy in enumerate(enemies): 
+        if selected_level == 0:  # Beginner: DFS
+            new_pos = move_enemy_with_dfs(enemy, pacman_pos)
+            enemies[i] = [new_pos[0], new_pos[1]]
+        elif selected_level == 1:  # Intermediate: BFS
+            new_pos = move_enemy_with_bfs(enemy, pacman_pos)
+            enemies[i] = [new_pos[0], new_pos[1]]
+        elif selected_level == 2:  # Advanced: A*
+            new_pos = move_enemy_with_a_star(enemy, pacman_pos)
+            enemies[i] = [new_pos[0], new_pos[1]]
 
 def show_game_over():  # Show game over screen
     overlay = pygame.Surface((WIDTH, HEIGHT))
@@ -482,7 +504,6 @@ if __name__ == "__main__":
     # Initialize food after the menu loop
     food_count = 3
     food = generate_food(food_count)
-    update_additional_costs(food)
 
     while running:
         screen.fill(BLACK)
@@ -492,6 +513,9 @@ if __name__ == "__main__":
         draw_enemies()
         draw_metrics()
         draw_food_eaten()
+
+        # Update costs based on ghost proximity
+        update_costs_based_on_ghosts_and_food(food)
 
         if food:
             move_pacman_with_algorithm(food[0])
@@ -505,11 +529,9 @@ if __name__ == "__main__":
             if pacman_pos == powerup:
                 food.remove(powerup)
                 food_eaten += 1
-                update_additional_costs(food)
 
         if not food:
             food = generate_food(food_count)
-            update_additional_costs(food)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
