@@ -458,71 +458,68 @@ start_time = pygame.time.get_ticks() # intialize the start time
 # ==== Main Game Loop =============================================================================
 #
 # =================================================================================================
-running = True
+if __name__ == "__main__":
+    running = True
 
-while MENU:  # Menu loop
-    draw_menu()
-    for event in pygame.event.get():  # Check for events
-        if event.type == pygame.QUIT:  # Close the game
-            pygame.quit()
-            exit()
+    while MENU:
+        draw_menu()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected_level = (selected_level - 1) % len(levels)
+                if event.key == pygame.K_DOWN:
+                    selected_level = (selected_level + 1) % len(levels)
+                if event.key == pygame.K_RETURN:
+                    MENU = False
+                if event.key == pygame.K_LEFT:
+                    selected_bot = (selected_bot - 1) % len(algorithm)
+                if event.key == pygame.K_RIGHT:
+                    selected_bot = (selected_bot + 1) % len(algorithm)
 
-        if event.type == pygame.KEYDOWN:  # Check for key presses
-            if event.key == pygame.K_UP:
-                selected_level = (selected_level - 1) % len(levels)
-            if event.key == pygame.K_DOWN:
-                selected_level = (selected_level + 1) % len(levels)
-            if event.key == pygame.K_RETURN:
-                MENU = False  # exit menu and start the game
-            if event.key == pygame.K_LEFT:
-                selected_bot = (selected_bot - 1) % len(algorithm)
-            if event.key == pygame.K_RIGHT:
-                selected_bot = (selected_bot + 1) % len(algorithm)
+    # Initialize food after the menu loop
+    food_count = 3
+    food = generate_food(food_count)
+    update_additional_costs(food)
 
-# Initialize food after the menu loop
-food_count = 3  # Set food count to 3 for all levels
-food = generate_food(food_count)  # generate initial food
-update_additional_costs(food)
+    while running:
+        screen.fill(BLACK)
+        draw_grid()
+        draw_pacman()
+        draw_food()
+        draw_enemies()
+        draw_metrics()
+        draw_food_eaten()
 
-while running:  # Main game loop
-    screen.fill(BLACK)
-    draw_grid()
-    draw_pacman()
-    draw_food()
-    draw_enemies()
-    draw_metrics()  # Display both steps taken and time remaining
-    draw_food_eaten()
+        if food:
+            move_pacman_with_algorithm(food[0])
+        move_enemies()
 
-    ''' This was the old movement logic to move pacman with a* only. Below is the new code
-    if food:  # Move Pacman toward the first food (or any target)
-        move_pacman_with_a_star(food[0])  # pacman targets the first food
-    '''
-    if food:  # Move Pacman toward the first food (or any target)
-        move_pacman_with_algorithm(food[0])  # use the selected algorithm
-    move_enemies()  # ghosts move based on the selected level
-
-    if check_collision_with_enemies():  # Check for collision with enemies
-        show_game_over()
-        running = False  # End the game loop after collision
-
-    for powerup in food[:]:  # Check for collision with food
-        if pacman_pos == powerup:
-            food.remove(powerup)  # remove the pellet if Pacman collects it
-            food_eaten += 1  # increment the food eaten counter
-            update_additional_costs(food)  # Update additional costs
-
-    if not food:  # Check if all food pellets are eaten
-        food = generate_food(food_count)  # respawn food
-        update_additional_costs(food)  # Update additional costs
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if check_collision_with_enemies():
+            show_game_over()
             running = False
 
-    pygame.display.flip()  # update the display
-    clock.tick(5)  # set the frame rate to 5 FPS to slow down the game
-    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
-    if elapsed_time > game_duration:  # Check if the game duration is over 60s
-        show_game_over()  # show the game over screen
-        running = False  # exit the main game loop
-pygame.quit()
+        for powerup in food[:]:
+            if pacman_pos == powerup:
+                food.remove(powerup)
+                food_eaten += 1
+                update_additional_costs(food)
+
+        if not food:
+            food = generate_food(food_count)
+            update_additional_costs(food)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        pygame.display.flip()
+        clock.tick(5)
+        elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
+        if elapsed_time > game_duration:
+            show_game_over()
+            running = False
+
+    pygame.quit()
