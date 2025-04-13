@@ -1,10 +1,21 @@
+# File: simulations.py
+# Description: This file contains the simulation logic for the Pac-Bot game.
 import csv
 import pygame
 from pacbot import (
-    pacman_pos, generate_food, update_additional_costs,
-    bfs, dfs, a_star_search,
-    ROWS, COLS, algorithm, levels,
-    center_row, center_col, game_duration
+    pacman_pos,
+    generate_food,
+    update_additional_costs,
+    bfs,
+    dfs,
+    a_star_search,
+    ROWS,
+    COLS,
+    algorithm,
+    levels,
+    center_row,
+    center_col,
+    game_duration,
 )
 
 pygame.display.set_mode((1, 1))
@@ -82,20 +93,24 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
             if elapsed_time >= game_duration:
                 game_over = True
 
-        results.append({
-            "Pac-Bot AI": algorithm[pac_algo_index],
-            "Ghost AI": levels[ghost_algo_index].split(" - ")[-1],
-            "Steps Taken": steps_taken,
-            "Food Eaten": food_eaten,
-            "Time Survived": elapsed_time
-        })
+        results.append(
+            {
+                "Pac-Bot AI": algorithm[pac_algo_index],
+                "Ghost AI": levels[ghost_algo_index].split(" - ")[-1],
+                "Steps Taken": steps_taken,
+                "Food Eaten": food_eaten,
+                "Time Survived": elapsed_time,
+            }
+        )
 
     return results
 
 
 if __name__ == "__main__":
     all_results = []
-    print("Running 50 simulations for each Pac-Bot algorithm vs Ghost AI combinations...")
+    print(
+        "Running 50 simulations for each Pac-Bot algorithm vs Ghost AI combinations..."
+    )
 
     for pac in range(3):
         for ghost in range(3):
