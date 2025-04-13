@@ -2,10 +2,11 @@
 # Description: This file contains the simulation logic for the Pac-Bot game.
 import csv
 import pygame
+import memory_tracker
 from pacbot import (
     pacman_pos,
     generate_food,
-    update_additional_costs,
+    update_costs_based_on_ghosts_and_food,
     bfs,
     dfs,
     a_star_search,
@@ -29,7 +30,7 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
         steps_taken = 0
         food_eaten = 0
         food = generate_food(3)
-        update_additional_costs(food)
+        update_costs_based_on_ghosts_and_food(food)
 
         enemies = [
             [center_row - 2, center_col],
@@ -38,6 +39,7 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
             [center_row, center_col + 2],
         ]
 
+        memory_tracker.start_tracking()
         start_time = pygame.time.get_ticks()
         ghost_move_counter = 0
         ghost_move_delay = 3
@@ -56,6 +58,7 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
                 if path:
                     pacman_pos[0], pacman_pos[1] = path[0]
                     steps_taken += 1
+            
 
             # Move Ghosts
             ghost_move_counter += 1
@@ -81,17 +84,20 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
                 if pacman_pos == f:
                     food.remove(f)
                     food_eaten += 1
-                    update_additional_costs(food)
+                    update_costs_based_on_ghosts_and_food(food)
 
             # Respawn food
             if not food:
                 food = generate_food(3)
-                update_additional_costs(food)
+                update_costs_based_on_ghosts_and_food(food)
 
             # Time check
             elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
             if elapsed_time >= game_duration:
                 game_over = True
+        
+        memory_tracker.stop_tracking()
+        current_memory = memory_tracker.get_memory_usage()
 
         results.append(
             {
@@ -100,6 +106,7 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
                 "Steps Taken": steps_taken,
                 "Food Eaten": food_eaten,
                 "Time Survived": elapsed_time,
+                "RAM (KB)": current_memory
             }
         )
 
