@@ -7,6 +7,7 @@ import pygame
 import heapq
 import random
 from collections import deque
+import memory_tracker  # Import the memory tracker module
 
 pygame.init()  # initializes all imported pygame modules
 pygame.font.init()  # initializes the font module
@@ -314,23 +315,11 @@ def draw_enemies():  # Draw enemies
             TILE_SIZE // 2,
         )
 
-def draw_timer():  # Function to draw the timer and time remaining on the screen
-    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # convert to seconds
-    remaining_time = max(0, game_duration - elapsed_time)  # calculate remaining time
-    timer_text = metrics_font.render(f"Time: {elapsed_time}s", True, WHITE)
-    remaining_text = metrics_font.render(f"Time Remaining: {remaining_time}s", True, WHITE)
-    screen.blit(timer_text, (20, HEIGHT - METRICS_HEIGHT + 10))  # display timer in metrics area
-    screen.blit(remaining_text, (250, HEIGHT - METRICS_HEIGHT + 10))  # display remaining time
-
-def draw_food_eaten():  # Function to display the number of food pellets eaten
-    food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
-    screen.blit(food_text, (500, HEIGHT - METRICS_HEIGHT + 10))  # display in metrics area
-
 def draw_steps_taken():  # Function to display the number of steps Pacman has taken
     steps_text = metrics_font.render(f"Steps Taken: {steps_taken}", True, WHITE)
     screen.blit(steps_text, (20, HEIGHT - METRICS_HEIGHT + 10))  # display in metrics area
 
-def draw_metrics():  # Function to display both steps taken and time remaining
+def draw_metrics():  # Function to display steps taken, time remaining, and memory usage
     global steps_taken
     elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # convert to seconds
     remaining_time = max(0, game_duration - elapsed_time)  # calculate remaining time
@@ -340,16 +329,21 @@ def draw_metrics():  # Function to display both steps taken and time remaining
     screen.blit(steps_text, (20, HEIGHT - METRICS_HEIGHT + 10))  # display steps in metrics area
 
     # Render time remaining
-    time_text = metrics_font.render(f"Time Remaining: {remaining_time}s", True, WHITE)
-    screen.blit(time_text, (250, HEIGHT - METRICS_HEIGHT + 10))  # display time in metrics area
-    
+    time_text = metrics_font.render(f"Time Left: {remaining_time}s", True, WHITE)
+    screen.blit(time_text, (175, HEIGHT - METRICS_HEIGHT + 10))  # display time in metrics area
+
     # Render food eaten
     food_text = metrics_font.render(f"Food Eaten: {food_eaten}", True, WHITE)
-    screen.blit(food_text, (500, HEIGHT - METRICS_HEIGHT + 10))  # display in metrics area
-    
-    # Render algorithm info to the right of food eaten
+    screen.blit(food_text, (325, HEIGHT - METRICS_HEIGHT + 10))  # display in metrics area
+
+    # Render algorithm info
     algo_text = metrics_font.render(f"Pacman: {algorithm[selected_bot]}", True, YELLOW)
     screen.blit(algo_text, (650, HEIGHT - METRICS_HEIGHT + 10))  # aligned with other metrics
+
+    # Render memory usage
+    current_memory, peak_memory = memory_tracker.get_memory_usage()
+    memory_text = metrics_font.render(f"Ram Used: {current_memory} KB", True, WHITE)
+    screen.blit(memory_text, (475, HEIGHT - METRICS_HEIGHT + 10))  # display memory usage below steps
 
 def draw_menu(): # Draw the menu for selecting levels
     screen.fill(BLACK)
@@ -380,13 +374,14 @@ def draw_menu(): # Draw the menu for selecting levels
 # =================================================================================================
 recent_positions = deque(maxlen=5)  # Keep track of the last 5 positions
 
-def move_pacman_with_algorithm(target): # Move Pacman using the selected algorithm
+# Modify the move_pacman_with_algorithm function to track memory usage
+def move_pacman_with_algorithm(target):  # Move Pacman using the selected algorithm
     global steps_taken, recent_positions
-    recent_positions.append(tuple(pacman_pos)) # store the current position
+    recent_positions.append(tuple(pacman_pos))  # store the current position
 
     # Check if Pacman is oscillating between positions
     if len(recent_positions) == recent_positions.maxlen and len(set(recent_positions)) <= 2: 
-        if pacman_pos[0] < target[0]: # Move in the direction of the target
+        if pacman_pos[0] < target[0]:  # Move in the direction of the target
             pacman_pos[0] += 1
         elif pacman_pos[0] > target[0]:
             pacman_pos[0] -= 1
@@ -405,7 +400,7 @@ def move_pacman_with_algorithm(target): # Move Pacman using the selected algorit
     elif selected_bot == 2:  # DFS
         path = dfs(pacman_pos, target)
 
-    if path: # Path found
+    if path:  # Path found
         pacman_pos[0], pacman_pos[1] = path[0]  # Move to the next position in the path
         steps_taken += 1  # Increment the steps counter
 
@@ -474,6 +469,9 @@ def show_game_over():  # Show game over screen
                 exit()
 start_time = pygame.time.get_ticks() # intialize the start time
 
+# Start tracking memory usage at the beginning of the game
+memory_tracker.start_tracking()
+
 # ==== Main Game Loop =============================================================================
 #
 # =================================================================================================
@@ -509,7 +507,6 @@ if __name__ == "__main__":
         draw_food()
         draw_enemies()
         draw_metrics()
-        draw_food_eaten()
         update_costs_based_on_ghosts_and_food(food)
 
         if food:
@@ -539,3 +536,4 @@ if __name__ == "__main__":
             show_game_over()
             running = False
     pygame.quit()
+    memory_tracker.stop_tracking()
