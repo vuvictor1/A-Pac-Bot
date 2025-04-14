@@ -96,8 +96,8 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
             if elapsed_time >= game_duration:
                 game_over = True
         
+        current_memory, peak_memory = memory_tracker.get_memory_usage()
         memory_tracker.stop_tracking()
-        current_memory = memory_tracker.get_memory_usage()
 
         results.append(
             {
@@ -106,7 +106,8 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
                 "Steps Taken": steps_taken,
                 "Food Eaten": food_eaten,
                 "Time Survived": elapsed_time,
-                "RAM (KB)": current_memory
+                "RAM (KB)": current_memory,
+                "Peak RAM (KB)": peak_memory
             }
         )
 
