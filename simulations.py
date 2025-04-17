@@ -3,7 +3,7 @@
 import csv
 import pygame
 import memory_tracker
-from pacbot import (
+from pacbot import ( 
     pacman_pos,
     generate_food,
     update_costs_based_on_ghosts_and_food,
@@ -19,20 +19,19 @@ from pacbot import (
     game_duration,
 )
 
-pygame.display.set_mode((1, 1))
+pygame.display.set_mode((1, 1)) # create a dummy display for pygame
 
-
-def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
+def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50): # Default to 50 runs
     results = []
 
-    for run in range(simulation_runs):
+    for run in range(simulation_runs): # run 50 simulations
         pacman_pos[:] = [1, 1]
         steps_taken = 0
         food_eaten = 0
         food = generate_food(3)
         update_costs_based_on_ghosts_and_food(food)
 
-        enemies = [
+        enemies = [ # Place enemy agents
             [center_row - 2, center_col],
             [center_row + 2, center_col],
             [center_row, center_col - 2],
@@ -99,7 +98,7 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
         current_memory, peak_memory = memory_tracker.get_memory_usage()
         memory_tracker.stop_tracking()
 
-        results.append(
+        results.append( # Store results
             {
                 "Pac-Bot AI": algorithm[pac_algo_index],
                 "Ghost AI": levels[ghost_algo_index].split(" - ")[-1],
@@ -114,13 +113,13 @@ def simulation(pac_algo_index, ghost_algo_index, simulation_runs=50):
     return results
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # Main function to run the simulation
     all_results = []
     print(
         "Running 50 simulations for each Pac-Bot algorithm vs Ghost AI combinations..."
     )
 
-    for pac in range(3):
+    for pac in range(3): # Pacman algorithms
         for ghost in range(3):
             combo_name = f"{algorithm[pac]} vs {levels[ghost].split(' - ')[-1]}"
             print(f"> Simulating {combo_name}...")

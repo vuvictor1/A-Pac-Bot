@@ -472,16 +472,16 @@ memory_tracker.start_tracking() # Initialize memory tracking
 # ==== Main Game Loop =============================================================================
 #
 # =================================================================================================
-if __name__ == "__main__":
+if __name__ == "__main__": # Main function to run the game
     running = True
 
-    while MENU:
+    while MENU: # Menu loop
         draw_menu()
-        for event in pygame.event.get():
+        for event in pygame.event.get(): # Check for events
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN: # Check for key presses
                 if event.key == pygame.K_UP:
                     selected_level = (selected_level - 1) % len(levels)
                 if event.key == pygame.K_DOWN:
@@ -497,7 +497,7 @@ if __name__ == "__main__":
     food_count = 3
     food = generate_food(food_count)
 
-    while running:
+    while running: 
         screen.fill(BLACK)
         draw_grid()
         draw_pacman()
@@ -506,31 +506,31 @@ if __name__ == "__main__":
         draw_metrics()
         update_costs_based_on_ghosts_and_food(food)
 
-        if food:
+        if food: # Move Pacman towards the first food item
             move_pacman_with_algorithm(food[0])
         move_enemies()
 
-        if check_collision_with_enemies():
+        if check_collision_with_enemies(): # Check for collision with enemies
             show_game_over()
             running = False
 
-        for powerup in food[:]:
+        for powerup in food[:]: # Check for collision with food
             if pacman_pos == powerup:
                 food.remove(powerup)
                 food_eaten += 1
 
-        if not food:
+        if not food: # Generate new food if all food is eaten
             food = generate_food(food_count)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in pygame.event.get(): # Check for events
+            if event.type == pygame.QUIT: 
                 running = False
 
-        pygame.display.flip()
-        clock.tick(5)
-        elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
-        if elapsed_time > game_duration:
+        pygame.display.flip() # update the display
+        clock.tick(5) # control the frame rate
+        elapsed_time = (pygame.time.get_ticks() - start_time) // 1000 # convert to seconds
+        if elapsed_time > game_duration: # Check if time is up
             show_game_over()
             running = False
-    pygame.quit()
+    pygame.quit() 
     memory_tracker.stop_tracking()
