@@ -2,6 +2,9 @@
 # Authors: Victor Vu, Cristian Gomez, Alexander Hermenegildo & Jesus Fierro
 # File: pacbot.py
 # Description: This file contains the main game loop and logic for the game.
+
+# Please ensure pygame-ce is installed in your Python environment.
+# Install it using: "pip3 install pygame-ce"
 # ============================================================================
 import pygame
 import heapq
