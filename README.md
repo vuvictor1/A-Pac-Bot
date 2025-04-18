@@ -5,13 +5,14 @@
 </div>
 
 ## Overview
-Pac-Bot AI is a game that explores AI navigation through a grid-based maze environment. Inspired by the classic Pac-Man, the game features a player-controlled Pac-Man searching for food while being chased by four ghost agents. The project incorporates a fully AI-controlled multi-agent system where entities use the A* Search algorithm for pathfinding, leveraging heuristics and path costs for efficiency. Additionally, the project implements BFS and DFS algorithms to provide comparison metrics for evaluating performance and efficiency.
+Pac-Bot AI is a game that explores AI navigation through a grid-based maze environment. Inspired by the classic Pac-Man, the game features a player-controlled Pac-Man searching for food while being chased by four ghost agents. The project incorporates a fully AI-controlled multi-agent system where entities use the A* Search algorithm for pathfinding, leveraging heuristics and path costs for efficiency. Path costs are adapted as a proximity system in A* for Pac-bot to avoid ghosts. Additionally, the project implements BFS and DFS algorithms to provide comparison metrics for evaluating performance and efficiency.
 
 ## Features
 - **Search Algorithms**: Implements A*, BFS, and DFS for efficient pathfinding.
 - **Multi-Agent System**: 1 Pac-Bot AI vs 4 Ghost AIs.
 - **Multiple Levels**: Test different algorithm combinations.
 - **Food System**: Randomly positioned respawnable food pellets in valid spaces.
+- **Cost Proximity**: Path costs placed adjacent to ghosts, being costly for A* Pac-bot pathfind near it.
 - **Performance Metrics**: Evaluates steps taken, time, food consumed and ram usage.
 - **Game Simulator**: Simulate 50 games per AI matchup for metrics collection. 
 
