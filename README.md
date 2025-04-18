@@ -38,7 +38,7 @@ Pac-Bot AI is a game that explores AI navigation through a grid-based maze envir
      - **Ram Used:** Current memory usage.
 
 ## Code Layout
-- `pacman.py`: Main game file that initializes and runs the game. Generates the maze layout,
+- `pacbot.py`: Main game file that initializes and runs the game. Generates the maze layout,
 creates 1 pac-bot and 4 ghosts. Handles the algorithmic implementation of A*, BFS, and DFS.
 Also performs some metrics for steps taken, time, ram usage, and food count. 
 - `memory_tracker.py`: Measure ram usage metrics. 
